@@ -1,0 +1,8 @@
+README.md
+setup.py
+adventofcode/__init__.py
+adventofcode/__main__.py
+adventofcode.egg-info/PKG-INFO
+adventofcode.egg-info/SOURCES.txt
+adventofcode.egg-info/dependency_links.txt
+adventofcode.egg-info/top_level.txt
