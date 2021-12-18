@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+numpy = ">=1.18.4"
+
+[dev-packages]
+mypy = ">=0.920"
+black = ">=21.12b0"
+flake8 = ">=4.0.1"
+pytest = ">=6.2.5"
+
+[requires]
+python_version = "3.10"
