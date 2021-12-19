@@ -1,5 +1,6 @@
 def day04a():
-	pass
+    pass
 
-def day04b():
-	pass
+
+def day04b(lines):
+    pass

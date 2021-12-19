@@ -1,9 +1,9 @@
-def day01a(lines: list[str]) -> int:
+def day01a(numbers: list[str]) -> int:
     this = None
     increases = 0
 
-    for line in lines:
-        last, this = this, int(line)
+    for number in numbers:
+        last, this = this, int(number)
         if last is None:
             continue
 
@@ -12,13 +12,15 @@ def day01a(lines: list[str]) -> int:
     return increases
 
 
-def day01b(lines: list[str]) -> int:
+def day01b(numbers: list[str]) -> int:
+    k: int = 3
     this: list[int] = []
     increases = 0
-    for line in lines:
-        last, this = this, this + [int(line)]
 
-        if len(last) < 3:
+    for number in numbers:
+        last, this = this, this + [int(number)]
+
+        if len(last) < k:
             continue
 
         this.pop(0)

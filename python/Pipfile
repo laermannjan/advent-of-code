@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 numpy = ">=1.18.4"
+memory-profiler = "*"
 
 [dev-packages]
 mypy = ">=0.920"
