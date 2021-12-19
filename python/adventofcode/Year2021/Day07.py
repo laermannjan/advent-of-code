@@ -1,5 +1,6 @@
 def day07a():
-	pass
+    pass
+
 
 def day07b():
-	pass
+    pass
