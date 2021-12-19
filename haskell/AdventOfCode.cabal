@@ -57,6 +57,7 @@ library
       ./
   build-depends:
       base >=4.7 && <5
+    , text
     , timeit
   default-language: Haskell2010
 
@@ -70,6 +71,7 @@ executable AdventOfCode-exe
   build-depends:
       AdventOfCode
     , base >=4.7 && <5
+    , text
     , timeit
   default-language: Haskell2010
 
@@ -84,5 +86,6 @@ test-suite AdventOfCode-test
   build-depends:
       AdventOfCode
     , base >=4.7 && <5
+    , text
     , timeit
   default-language: Haskell2010
