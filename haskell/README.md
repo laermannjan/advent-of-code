@@ -18,8 +18,8 @@ Make sure that `stack` is in your `$PATH`. Then from the this directory build th
 
 ```bash
 stack build
-stack exec adventofcode  # prints usage info
-stack exec adventofcode -- 2021 4a  # solves Problem 4a of AoC 2021
+stack exec adventofcode-exe  # prints usage info
+stack exec adventofcode-exe -- 2021 4a  # solves Problem 4a of AoC 2021
 ```
 
 ## Caveats
