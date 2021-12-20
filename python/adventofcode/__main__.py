@@ -1,10 +1,8 @@
 from adventofcode import AVAILABLE_SOLVERS as solvers
-import os
 import argparse
 import time
+from adventofcode import PROJECT_PATH
 from memory_profiler import profile
-
-PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def parse_args() -> argparse.Namespace:
@@ -19,22 +17,26 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def solve(year, problem, input_fname):
+def solve(year, day, part, input_fname):
     start = time.perf_counter()
     with open(input_fname, "r") as f:
-        answer = solvers[year][problem](f.read().splitlines())
+        answer = solvers[year][f"{day}{part}"](f.read().splitlines())
     end = time.perf_counter()
     return answer, end - start
 
 
 if __name__ == "__main__":
     args = parse_args()
-    fname = f"Day{args.problem[:-1].zfill(2)}.txt"
-    rel_path = f"../input/{args.year}"
+
+    day = args.problem[:-1].zfill(2)
+    part = args.problem[-1]
+
+    fname = f"day{day}/day{day}_input_puzzle.txt"
+    rel_path = f"../data/{args.year}"
     input_fname = f"{PROJECT_PATH}/{rel_path}/{fname}"
 
     if args.profile:
         solve = profile(solve)
-    answer, delta = solve(args.year, args.problem, input_fname)
+    answer, delta = solve(args.year, day, part, input_fname)
     print(answer)
     print(f"Took {delta:.4f}s")
