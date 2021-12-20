@@ -2,10 +2,10 @@
 
 ## Haskell
 
-Install the `haskell-platform` via ghcup and make sure to install `stack`:
+Install the `haskell-platform` via ghcup and make sure to install `stack` (see the [docs](https://www.haskell.org/downloads/)):
 
 ```bash
-curl -sSL https://get.haskellstack.org/ | sh
+curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
 ```
 
 VSCode seems to have the easiest and most accessible [plugin for Haskell including the Haskell-Language-Server](https://marketplace.visualstudio.com/items?itemName=haskell.haskell).
