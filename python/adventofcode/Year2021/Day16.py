@@ -1,5 +1,6 @@
-def day16a():
-	pass
+def day16a(lines: list[str]):
+    pass
 
-def day16b():
-	pass
+
+def day16b(lines: list[str]):
+    pass
