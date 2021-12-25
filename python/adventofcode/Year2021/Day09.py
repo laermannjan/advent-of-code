@@ -48,6 +48,7 @@ What do you get if you multiply together the sizes of the three largest basins?
 
 
 import numpy as np
+import numpy.typing as npt
 
 
 def get_neighbors(row, col, height, width):
@@ -74,14 +75,20 @@ def get_low_points(heightmap):
     return low_points
 
 
-def day09a(lines: list[str]):
-    heightmap = np.array([[int(x) for x in row] for row in lines])
+def parse_input(filename: str) -> npt.NDArray[int]:
+    with open(filename, 'r') as f:
+        data = f.read().splitlines()
+    return np.array([[int(x) for x in row] for row in data])
+
+
+def day09a(filename: str) -> int:
+    heightmap = parse_input(filename)
     low_points = get_low_points(heightmap)
     return sum([heightmap[lp] + 1 for lp in low_points])
 
 
-def day09b(lines: list[str]):
-    heightmap = np.array([[int(x) for x in row] for row in lines])
+def day09b(filename: str) -> int:
+    heightmap = parse_input(filename)
     low_points = get_low_points(heightmap)
 
     basins = []
@@ -102,4 +109,4 @@ def day09b(lines: list[str]):
         basins.append(basin)
 
     largest_basins = sorted([len(b) for b in basins])[-3:]
-    return np.prod(largest_basins)
+    return int(np.prod(largest_basins))

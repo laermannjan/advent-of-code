@@ -19,8 +19,9 @@ def parse_args() -> argparse.Namespace:
 
 def solve(year, day, part, input_fname):
     start = time.perf_counter()
-    with open(input_fname, "r") as f:
-        answer = solvers[year][f"{day}{part}"](f.read().splitlines())
+    # with open(input_fname, "r") as f:
+    #     answer = solvers[year][f"{day}{part}"](f.read().splitlines())
+    answer = solvers[year][f"{day}{part}"](input_fname)
     end = time.perf_counter()
     return answer, end - start
 

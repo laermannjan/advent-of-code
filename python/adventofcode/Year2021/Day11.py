@@ -328,8 +328,14 @@ def step(grid):
     return grid, flashes
 
 
-def day11a(lines: list[str]):
-    grid = np.array([[int(x) for x in row] for row in lines])
+def parse_input(filename: str):
+    with open(filename, 'r') as f:
+        data = f.read().splitlines()
+    return np.array([[int(x) for x in row] for row in data])
+
+
+def day11a(filename: str) -> int:
+    grid = parse_input(filename)
     steps = 100
     flashes = []
 
@@ -340,9 +346,9 @@ def day11a(lines: list[str]):
     return total_flashes
 
 
-def day11b(lines: list[str]):
+def day11b(filename: str) -> int:
+    grid = parse_input(filename)
     syncing_step = 0
-    grid = np.array([[int(x) for x in row] for row in lines])
 
     synced = lambda g: np.alltrue(g == g[0, 0])
     while not synced(grid):

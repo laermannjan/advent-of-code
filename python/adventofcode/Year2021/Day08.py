@@ -85,9 +85,15 @@ For each entry, determine all of the wire/segment connections and decode the fou
 """
 
 
-def day08a(lines: list[str]):
+def parse_input(filename: str) -> list[str]:
+    with open(filename, 'r') as f:
+        data = f.read().splitlines()
+    return data
+
+
+def day08a(filename: str) -> int:
     counter = 0
-    for line in lines:
+    for line in parse_input(filename):
         outputs = line.split(" | ")[1].split(" ")
         for digit in outputs:
             if len(digit) in (2, 3, 4, 7):
@@ -95,9 +101,9 @@ def day08a(lines: list[str]):
     return counter
 
 
-def day08b(lines: list[str]):
+def day08b(filename: str) -> int:
     decodes = []
-    for line in lines:
+    for line in parse_input(filename):
         signals_str, outputs_str = line.split(" | ")
         signals = sorted([set(s) for s in signals_str.split(" ")], key=len)
         outputs = ["".join(sorted(s)) for s in outputs_str.split(" ")]

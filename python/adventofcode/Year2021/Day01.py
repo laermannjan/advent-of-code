@@ -59,32 +59,23 @@ In this example, there are 5 sums that are larger than the previous sum.
 """
 
 
-def day01a(numbers: list[str]) -> int:
-    this = None
-    increases = 0
-
-    for number in numbers:
-        last, this = this, int(number)
-        if last is None:
-            continue
-
-        if last < this:
-            increases += 1
-    return increases
+def parse_input(filename: str) -> list[int]:
+    with open(filename, "r") as f:
+        data = f.read().splitlines()
+    return [int(d) for d in data]
 
 
-def day01b(numbers: list[str]) -> int:
-    k: int = 3
-    this: list[int] = []
-    increases = 0
+def count_increases(numbers: list[int]) -> int:
+    return sum([this < next for this, next in zip(numbers, numbers[1:])])
 
-    for number in numbers:
-        last, this = this, this + [int(number)]
 
-        if len(last) < k:
-            continue
+def window_sums(numbers: list[int], k: int) -> list[int]:
+    return [sum(numbers[i : i + 3]) for i in range(len(numbers) - 2)]
 
-        this.pop(0)
-        if sum(last) < sum(this):
-            increases += 1
-    return increases
+
+def day01a(filename: str) -> int:
+    return count_increases(parse_input(filename))
+
+
+def day01b(filename: str) -> int:
+    return count_increases(window_sums(parse_input(filename), k=3))

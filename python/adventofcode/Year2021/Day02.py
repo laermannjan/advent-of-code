@@ -43,12 +43,17 @@ Using this new interpretation of the commands, calculate the horizontal position
 """
 
 
-def day02a(lines: list[str]) -> int:
+def parse_input(filename: str) -> list[list[str]]:
+    with open(filename, "r") as f:
+        data = f.read().splitlines()
+    return [line.split(" ") for line in data]
+
+
+def day02a(filename: str) -> int:
     horizontal = 0
     depth = 0
 
-    for line in lines:
-        inst, val_str = line.split(" ")
+    for inst, val_str in parse_input(filename):
         val = int(val_str)
 
         if inst == "forward":
@@ -59,13 +64,12 @@ def day02a(lines: list[str]) -> int:
     return horizontal * depth
 
 
-def day02b(lines: list[str]) -> int:
+def day02b(filename: str) -> int:
     horizontal = 0
     depth = 0
     aim = 0
 
-    for line in lines:
-        inst, val_str = line.split(" ")
+    for inst, val_str in parse_input(filename):
         val = int(val_str)
 
         if inst == "forward":

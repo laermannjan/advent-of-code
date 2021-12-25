@@ -81,11 +81,17 @@ def are_opposing_brackets(a, b):
     return False
 
 
-def day10a(lines: list[str]):
+def parse_input(filename: str) -> list[str]:
+    with open(filename, 'r') as f:
+        data = f.read().splitlines()
+    return data
+
+
+def day10a(filename: str) -> int:
     points = {")": 3, "]": 57, "}": 1197, ">": 25137}
     corruptions = {")": 0, "]": 0, "}": 0, ">": 0}
 
-    for line in lines:
+    for line in parse_input(filename):
         stack = []
         for char in line:
             if char in ["(", "[", "<", "{"]:
@@ -98,11 +104,11 @@ def day10a(lines: list[str]):
     return sum([corruptions[x] * points[x] for x in points])
 
 
-def day10b(lines: list[str]):
+def day10b(filename: str) -> int:
     points = {")": 1, "]": 2, "}": 3, ">": 4}
     scores = []
 
-    for line in lines:
+    for line in parse_input(filename):
         stack = []
         corrupted = False
         for char in line:

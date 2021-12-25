@@ -66,11 +66,17 @@ def count_fish_after_days(timings: list[int], days: int):
     return sum(tracker.values())
 
 
-def day06a(lines: list[str]):
-    timings = [int(x) for x in lines[0].split(",")]
+def parse_input(filename: str) -> list[int]:
+    with open(filename, 'r') as f:
+        data = f.read().splitlines()
+    return [int(x) for x in data[0].split(",")]
+
+
+def day06a(filename: str) -> int:
+    timings = parse_input(filename)
     return count_fish_after_days(timings, 80)
 
 
-def day06b(lines: list[str]):
-    timings = [int(x) for x in lines[0].split(",")]
+def day06b(filename: str) -> int:
+    timings = parse_input(filename)
     return count_fish_after_days(timings, 256)

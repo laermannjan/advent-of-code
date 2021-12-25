@@ -45,20 +45,21 @@ To guarantee victory against the giant squid, figure out which board will win fi
 import numpy as np
 
 
-def read_input(lines: list[str]) -> tuple[list[int], list[np.ndarray]]:
-    draws = [int(draw) for draw in lines[0].split(",")]
-    boards = []
-    for line in lines[1:]:
-        if line == "":
-            boards.append([])
-            continue
-        boards[-1].append([int(num) for num in line.split(" ") if num != ""])
-    boards = [np.array(b) for b in boards]
-    return draws, boards
+def parse_input(filename: str) -> tuple[list[int], list[np.ndarray]]:
+    with open(filename, 'r') as f:
+        data = f.read().splitlines()
+    draws = [int(draw) for draw in data[0].split(",")]
+    boards = [
+        [
+            [int(digit) for digit in row.split()]
+            for row in data[i:i+5]]
+        for i in range(2, len(data), 6)
+    ]
+    return draws, [np.array(b) for b in boards]
 
 
-def day04a(lines: list[str]):
-    draws, boards = read_input(lines)
+def day04a(filename: str):
+    draws, boards = parse_input(filename)
 
     for draw in draws:
         for board in boards:
@@ -67,8 +68,8 @@ def day04a(lines: list[str]):
                 return board.sum() * draw
 
 
-def day04b(lines: list[str]):
-    draws, boards = read_input(lines)
+def day04b(filename: str):
+    draws, boards = parse_input(filename)
     for draw in draws:
         winning_boards = []
         for i, board in enumerate(boards):
@@ -76,5 +77,6 @@ def day04b(lines: list[str]):
             if 0 in board.sum(axis=0) or 0 in board.sum(axis=1):
                 if len(boards) == 1:
                     return board.sum() * draw
+                # boards.pop(i)
                 winning_boards.append(i)
         boards = [board for i, board in enumerate(boards) if i not in winning_boards]

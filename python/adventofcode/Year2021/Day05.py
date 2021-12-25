@@ -107,9 +107,15 @@ def count_crossings(input: list[str], with_diag: bool) -> int:
     return len([freq for _, freq in cntr.items() if freq >= 2])
 
 
-def day05a(lines: list[str]) -> int:
-    return count_crossings(lines, False)
+def parse_input(filename: str) -> list[str]:
+    with open(filename, 'r') as f:
+        data = f.read().splitlines()
+    return data
 
 
-def day05b(lines: list[str]) -> int:
-    return count_crossings(lines, True)
+def day05a(filename: str) -> int:
+    return count_crossings(parse_input(filename), False)
+
+
+def day05b(filename: str) -> int:
+    return count_crossings(parse_input(filename), True)

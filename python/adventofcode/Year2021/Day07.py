@@ -42,20 +42,26 @@ Determine the horizontal position that the crabs can align to using the least fu
 import numpy as np
 
 
-def day07a(lines: list[str]):
-    crabs = [int(x) for x in lines[0].split(",")]
+def sum2n(n: int) -> int:
+    return int((n + 1) * (n / 2))
+
+
+def parse_input(filename: str) -> list[int]:
+    with open(filename, 'r') as f:
+        data = f.read().splitlines()
+    return [int(x) for x in data[0].split(",")]
+
+
+def day07a(filename: str) -> int:
+    crabs = parse_input(filename)
     median = np.median(crabs)
     costs = [abs(crab - median) for crab in crabs]
     cost = sum(costs)
     return int(cost)
 
 
-def sum2n(n: int) -> int:
-    return int((n + 1) * (n / 2))
-
-
-def day07b(lines: list[str]):
-    crabs = [int(x) for x in lines[0].split(",")]
+def day07b(filename: str) -> int:
+    crabs = parse_input(filename)
 
     floored_mean = np.floor(np.mean(crabs))
     ceiled_mean = np.ceil(np.mean(crabs))
