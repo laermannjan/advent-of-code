@@ -3,6 +3,7 @@ import argparse
 import time
 from adventofcode import PROJECT_PATH
 from memory_profiler import profile
+import os
 
 
 def parse_args() -> argparse.Namespace:
@@ -14,6 +15,7 @@ def parse_args() -> argparse.Namespace:
         help="Problem",
     )
     parser.add_argument("--profile", action="store_true")
+    parser.add_argument("--viz", action="store_true", help="Visualize solution if possible")
     return parser.parse_args()
 
 
@@ -29,6 +31,7 @@ def solve(year, day, part, input_fname):
 if __name__ == "__main__":
     args = parse_args()
 
+    os.environ["ADVENTOFCODE_VISUALIZE"] = '1' if args.viz else '0'
     day = args.problem[:-1].zfill(2)
     part = args.problem[-1]
 
