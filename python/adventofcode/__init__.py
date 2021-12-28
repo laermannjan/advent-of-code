@@ -2,6 +2,7 @@ from typing import Callable
 import adventofcode.Year2021 as Y21
 import os
 
+
 PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AVAILABLE_SOLVERS: dict[str, dict[str, Callable]] = {
     "2021": {

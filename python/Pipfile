@@ -12,6 +12,7 @@ mypy = ">=0.920"
 black = ">=21.12b0"
 flake8 = ">=4.0.1"
 pytest = ">=6.2.5"
+colored = "*"
 
 [requires]
 python_version = "3.10"
