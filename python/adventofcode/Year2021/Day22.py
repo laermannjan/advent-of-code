@@ -192,16 +192,25 @@ class Cuboid:
 
     @property
     def space(self):
-        space = (self.x_max - self.x_min) * (self.y_max - self.y_min) * (self.z_max - self.z_min)
+        space = (
+            (self.x_max - self.x_min)
+            * (self.y_max - self.y_min)
+            * (self.z_max - self.z_min)
+        )
         return space if self.is_on else -space
 
     def __sub__(self, other):
         """Intersection between two cuboids."""
         if not isinstance(other, Cuboid):
             return NotImplemented
-        if (self.x_min < other.x_max and self.x_max > other.x_min and
-                self.y_min < other.y_max and self.y_max > other.y_min and
-                self.z_min < other.z_max and self.z_max > other.z_min):
+        if (
+            self.x_min < other.x_max
+            and self.x_max > other.x_min
+            and self.y_min < other.y_max
+            and self.y_max > other.y_min
+            and self.z_min < other.z_max
+            and self.z_max > other.z_min
+        ):
             return Cuboid(
                 not self.is_on,
                 self.x_min if other.x_min <= self.x_min < other.x_max else other.x_min,
@@ -209,13 +218,23 @@ class Cuboid:
                 self.y_min if other.y_min <= self.y_min < other.y_max else other.y_min,
                 self.y_max if other.y_min <= self.y_max < other.y_max else other.y_max,
                 self.z_min if other.z_min <= self.z_min < other.z_max else other.z_min,
-                self.z_max if other.z_min <= self.z_max < other.z_max else other.z_max
+                self.z_max if other.z_min <= self.z_max < other.z_max else other.z_max,
             )
 
     @classmethod
     def from_string(cls, string: str):
-        x_min, x_max, y_min, y_max, z_min, z_max = (int(n) for n in re.findall(r"-?\d+", string))
-        return cls(string.startswith("on"), x_min, x_max+1, y_min, y_max+1, z_min, z_max+1)
+        x_min, x_max, y_min, y_max, z_min, z_max = (
+            int(n) for n in re.findall(r"-?\d+", string)
+        )
+        return cls(
+            string.startswith("on"),
+            x_min,
+            x_max + 1,
+            y_min,
+            y_max + 1,
+            z_min,
+            z_max + 1,
+        )
 
 
 def reboot_reactor(cuboids):
@@ -228,30 +247,37 @@ def reboot_reactor(cuboids):
     """
     all_cuboids = []
     for cuboid in cuboids:
-        all_cuboids.extend([
-            intersection
-            for other in all_cuboids
-            if (intersection := other - cuboid) is not None
-        ])
+        all_cuboids.extend(
+            [
+                intersection
+                for other in all_cuboids
+                if (intersection := other - cuboid) is not None
+            ]
+        )
         if cuboid.is_on:
             all_cuboids.append(cuboid)
     return sum(cuboid.space for cuboid in all_cuboids)
 
 
 def day22a(filename: str):
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         cuboids = [Cuboid.from_string(line) for line in f.read().splitlines()]
-    return reboot_reactor([
-        cuboid for cuboid in cuboids
-        if cuboid.x_min >= -50 and cuboid.x_max <= 51
-        and cuboid.y_min >= -50 and cuboid.y_max <= 51
-        and cuboid.z_min >= -50 and cuboid.z_max <= 51
-    ])
+    return reboot_reactor(
+        [
+            cuboid
+            for cuboid in cuboids
+            if cuboid.x_min >= -50
+            and cuboid.x_max <= 51
+            and cuboid.y_min >= -50
+            and cuboid.y_max <= 51
+            and cuboid.z_min >= -50
+            and cuboid.z_max <= 51
+        ]
+    )
 
 
 def day22b(filename: str):
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         cuboids = [Cuboid.from_string(line) for line in f.read().splitlines()]
 
     return reboot_reactor(cuboids)
-

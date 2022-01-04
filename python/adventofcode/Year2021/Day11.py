@@ -310,10 +310,14 @@ def step(grid):
     energized = True
     while energized:
         energized = False
-        energized_grid = np.copy(grid)  # keeps track of energy transferal in this evaluation round
+        energized_grid = np.copy(
+            grid
+        )  # keeps track of energy transferal in this evaluation round
         for row in range(grid.shape[0]):
             for col in range(grid.shape[1]):
-                flashing_neighbors = grid[max(0, row - 1):row + 2, max(0, col - 1):col + 2] > 9
+                flashing_neighbors = (
+                    grid[max(0, row - 1) : row + 2, max(0, col - 1) : col + 2] > 9
+                )
                 adj_energy = np.sum(flashing_neighbors)
                 if adj_energy > 0:
                     energized_grid[row, col] += adj_energy
@@ -329,7 +333,7 @@ def step(grid):
 
 
 def parse_input(filename: str):
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         data = f.read().splitlines()
     return np.array([[int(x) for x in row] for row in data])
 
@@ -356,4 +360,3 @@ def day11b(filename: str) -> int:
         syncing_step += 1
 
     return syncing_step
-

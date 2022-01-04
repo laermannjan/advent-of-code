@@ -35,7 +35,7 @@ def sum_to_inverse(s: int) -> float:
     2*S + 1/4 = (n + 1/2)**2
     sprt(2*S + 1/4) - 1/2 = n
     """
-    return sqrt(2*s - 0.25) - 0.5
+    return sqrt(2 * s - 0.25) - 0.5
 
 
 # k = (n + 1) * (n / 2) =

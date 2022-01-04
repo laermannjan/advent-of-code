@@ -373,7 +373,9 @@ def relocate(scanners):
     scanners = scanners[1:]
 
     while scanners:
-        matched_scanner, matched_scanner_pos, matched_beacons = matching(located_beacons, scanners)
+        matched_scanner, matched_scanner_pos, matched_beacons = matching(
+            located_beacons, scanners
+        )
         located_beacons |= set(matched_beacons)
         located_scanner.add(matched_scanner_pos)
         scanners.remove(matched_scanner)
@@ -424,21 +426,31 @@ def matching(located, scanners):
             counter_max = sorted(distance_counter.items(), key=lambda i: i[1])[::-1][0]
             if counter_max[1] >= 12:
                 diff = counter_max[0]
-                return scanner, diff, [(x + diff[0], y + diff[1], z + diff[2]) for x, y, z in beacons]
+                return (
+                    scanner,
+                    diff,
+                    [(x + diff[0], y + diff[1], z + diff[2]) for x, y, z in beacons],
+                )
 
 
 def day19a(filename: str):
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         data = f.read().splitlines()
-    scanners = [[tuple(map(int, j.split(","))) for j in i.split("\n")[1:]] for i in "\n".join(data).split("\n\n")]
+    scanners = [
+        [tuple(map(int, j.split(","))) for j in i.split("\n")[1:]]
+        for i in "\n".join(data).split("\n\n")
+    ]
     _, beacons = relocate(scanners)
     return len(beacons)
 
 
 def day19b(filename: str):
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         data = f.read().splitlines()
-    scanners = [[tuple(map(int, j.split(","))) for j in i.split("\n")[1:]] for i in "\n".join(data).split("\n\n")]
+    scanners = [
+        [tuple(map(int, j.split(","))) for j in i.split("\n")[1:]]
+        for i in "\n".join(data).split("\n\n")
+    ]
     scanners_pos, _ = relocate(scanners)
     scanner_pairs = combinations(list(scanners_pos), 2)
     return max(sum(abs(x - y) for x, y in zip(a, b)) for a, b in scanner_pairs)

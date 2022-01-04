@@ -108,7 +108,7 @@ def count_crossings(input: list[str], with_diag: bool) -> int:
 
 
 def parse_input(filename: str) -> list[str]:
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         data = f.read().splitlines()
     return data
 

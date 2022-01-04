@@ -55,9 +55,9 @@ from functools import cache
 
 
 def parse_input(filename: str) -> list[int]:
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         data = f.read().splitlines()
-    players = [int(line.split(':')[1].strip()) for line in data]
+    players = [int(line.split(":")[1].strip()) for line in data]
     return players
 
 
@@ -85,7 +85,9 @@ def count_wins(position_1, position_2, score_1, score_2):
         if new_score_1 >= 21:
             wins_1 += 1
         else:
-            new_wins_2, new_wins_1 = count_wins(position_2, new_position_1, score_2, new_score_1)
+            new_wins_2, new_wins_1 = count_wins(
+                position_2, new_position_1, score_2, new_score_1
+            )
             wins_1 += new_wins_1
             wins_2 += new_wins_2
     return wins_1, wins_2
@@ -95,8 +97,3 @@ def day21b(filename: str):
     pos1, pos2 = parse_input(filename)
     wins = count_wins(pos1, pos2, 0, 0)
     return max(wins)
-
-
-
-
-

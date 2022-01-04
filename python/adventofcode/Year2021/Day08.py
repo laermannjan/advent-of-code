@@ -86,7 +86,7 @@ For each entry, determine all of the wire/segment connections and decode the fou
 
 
 def parse_input(filename: str) -> list[str]:
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         data = f.read().splitlines()
     return data
 

@@ -27,7 +27,10 @@ class Tile:
 class RiskLevelMap:
     def __init__(self, risk_level_map: list[list[Tile]]):
         self._map = risk_level_map
-        self._cost = [[Tile(row, col, float("inf")) for col in range(self.width)] for row in range(self.height)]
+        self._cost = [
+            [Tile(row, col, float("inf")) for col in range(self.width)]
+            for row in range(self.height)
+        ]
 
     @property
     def height(self):
@@ -41,7 +44,10 @@ class RiskLevelMap:
         return self._map[pos[0]][pos[1]]
 
     def __hash__(self):
-        return hash([tile.risk for row in self._map for tile in row] + [tile.risk for row in self._cost for tile in row])
+        return hash(
+            [tile.risk for row in self._map for tile in row]
+            + [tile.risk for row in self._cost for tile in row]
+        )
 
     def get_neighbors(self, tile: Tile, use_cost=False):
         map = self._cost if use_cost else self._map
@@ -59,7 +65,7 @@ class RiskLevelMap:
 
     def get_min_cost(self, start: Tile, end: Tile):
         self._cost[start.row][start.col].risk = 0
-        if int(os.getenv('ADVENTOFCODE_VISUALIZE', 0)):
+        if int(os.getenv("ADVENTOFCODE_VISUALIZE", 0)):
             os.system("cls" if os.name == "nt" else "clear")
         # BFS
         queue = [start]
@@ -67,11 +73,13 @@ class RiskLevelMap:
             current = queue.pop(0)
             for neighbor in self.get_neighbors(current):
                 neighbor_cost = self._cost[neighbor.row][neighbor.col].risk
-                cost_to_neighbor = self._cost[current.row][current.col].risk + neighbor.risk
+                cost_to_neighbor = (
+                    self._cost[current.row][current.col].risk + neighbor.risk
+                )
                 if neighbor_cost > cost_to_neighbor:
                     self._cost[neighbor.row][neighbor.col].risk = cost_to_neighbor
                     queue.append(neighbor)
-                    if int(os.getenv('ADVENTOFCODE_VISUALIZE', 0)):
+                    if int(os.getenv("ADVENTOFCODE_VISUALIZE", 0)):
                         print(f"\033[{0};{0}H", end="")
                         print(self.heatmap())
                         time.sleep(0.1)
@@ -84,7 +92,8 @@ class RiskLevelMap:
         foregrounds = [25, 39, 6, 119, 3, 214, 166, 124]
         min_num = min(min(row) for row in self._cost).risk
         max_num = max(
-            max(num.risk if num.risk < float("inf") else min_num for num in row) for row in self._cost
+            max(num.risk if num.risk < float("inf") else min_num for num in row)
+            for row in self._cost
         )
 
         for row in range(self.height):
@@ -94,7 +103,9 @@ class RiskLevelMap:
                 if tile.risk == float("inf"):
                     output += f"  ∞"
                     continue
-                color = foregrounds[int((tile.risk - min_num) / (max_num - min_num) * 7)]
+                color = foregrounds[
+                    int((tile.risk - min_num) / (max_num - min_num) * 7)
+                ]
                 output += f"{fg(color)}{bg(background)}{tile.risk:>3}{attr('reset')}"
             output += "\n"
         return output
@@ -123,7 +134,8 @@ class RiskLevelMap:
             width = len(map[0])
 
             scaled_map = [
-                [Tile(row, col, None) for col in range(width * scale_factor)] for row in range(height * scale_factor)
+                [Tile(row, col, None) for col in range(width * scale_factor)]
+                for row in range(height * scale_factor)
             ]
             for row in range(height * scale_factor):
                 for col in range(width * scale_factor):

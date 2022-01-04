@@ -1,4 +1,3 @@
-
 """
 --- Day 10: Syntax Scoring ---
 You ask the submarine to determine the best route out of the deep-sea cave, but it only replies:
@@ -82,7 +81,7 @@ def are_opposing_brackets(a, b):
 
 
 def parse_input(filename: str) -> list[str]:
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         data = f.read().splitlines()
     return data
 

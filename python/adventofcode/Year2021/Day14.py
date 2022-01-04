@@ -9,7 +9,7 @@ class Polymer:
 
         self._pair_frequencies: defaultdict[str, int] = defaultdict(int)
         for i in range(len(polymer_template) - 1):
-            pair = polymer_template[i:i+2]
+            pair = polymer_template[i : i + 2]
             assert pair in rules
             self._pair_frequencies[pair] += 1
 
@@ -46,11 +46,12 @@ class Polymer:
 
     @classmethod
     def from_file(cls, filename: str) -> "Polymer":
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             data = f.read().splitlines()
         polymer_template = data[0]
         rules = {
-            pair: insertion for pair, insertion in (rule.split(' -> ') for rule in data[2:])
+            pair: insertion
+            for pair, insertion in (rule.split(" -> ") for rule in data[2:])
         }
         return cls(polymer_template, rules)
 
@@ -65,4 +66,3 @@ def day14b(filename: str) -> int:
     polymer = Polymer.from_file(filename)
     polymer.step(40)
     return polymer.most_common_letter - polymer.least_common_letter
-

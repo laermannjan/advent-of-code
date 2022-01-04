@@ -46,13 +46,11 @@ import numpy as np
 
 
 def parse_input(filename: str) -> tuple[list[int], list[np.ndarray]]:
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         data = f.read().splitlines()
     draws = [int(draw) for draw in data[0].split(",")]
     boards = [
-        [
-            [int(digit) for digit in row.split()]
-            for row in data[i:i+5]]
+        [[int(digit) for digit in row.split()] for row in data[i : i + 5]]
         for i in range(2, len(data), 6)
     ]
     return draws, [np.array(b) for b in boards]

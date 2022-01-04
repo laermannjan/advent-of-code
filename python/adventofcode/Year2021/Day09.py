@@ -1,4 +1,3 @@
-
 """
 -- Day 9: Smoke Basin ---
 These caves seem to be lava tubes. Parts are even still volcanically active; small hydrothermal vents release smoke into the caves that slowly settles like rain.
@@ -66,9 +65,7 @@ def get_low_points(heightmap):
         for col in range(heightmap.shape[1]):
             neighbors = [
                 heightmap[neigh[0], neigh[1]]
-                for neigh in get_neighbors(
-                    row, col, *heightmap.shape
-                )
+                for neigh in get_neighbors(row, col, *heightmap.shape)
             ]
             if all([heightmap[row, col] < n for n in neighbors]):
                 low_points.append((row, col))
@@ -76,7 +73,7 @@ def get_low_points(heightmap):
 
 
 def parse_input(filename: str) -> npt.NDArray[int]:
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         data = f.read().splitlines()
     return np.array([[int(x) for x in row] for row in data])
 
@@ -98,12 +95,10 @@ def day09b(filename: str) -> int:
         while stack:
             row, col = stack.pop()
             basin.add((row, col))
-            for neighbor in get_neighbors(
-                row, col, *heightmap.shape
-            ):
+            for neighbor in get_neighbors(row, col, *heightmap.shape):
                 if (
-                        heightmap[(row, col)] < heightmap[neighbor] != 9
-                        and heightmap[neighbor] not in basin
+                    heightmap[(row, col)] < heightmap[neighbor] != 9
+                    and heightmap[neighbor] not in basin
                 ):
                     stack.append(neighbor)
         basins.append(basin)

@@ -47,7 +47,7 @@ def sum2n(n: int) -> int:
 
 
 def parse_input(filename: str) -> list[int]:
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         data = f.read().splitlines()
     return [int(x) for x in data[0].split(",")]
 

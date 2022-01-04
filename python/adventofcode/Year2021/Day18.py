@@ -300,7 +300,7 @@ def day18b(filename: str):
     return max(
         max(
             SnailfishNumber(n1) + SnailfishNumber(n2),
-            SnailfishNumber(n2) + SnailfishNumber(n1)
+            SnailfishNumber(n2) + SnailfishNumber(n1),
         )
         for n1, n2 in combinations(data, 2)
     ).magnitude

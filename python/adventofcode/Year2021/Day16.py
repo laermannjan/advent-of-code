@@ -122,6 +122,7 @@ class LiteralValuePacket(Packet):
 
     def version_sum(self) -> int:
         return self.version
+
     @property
     def value(self) -> int:
         return self._value
@@ -171,21 +172,21 @@ class BITS:
         if packet_type == 4:
             num = ""
             for i in range(6, len(data), 5):
-                num += data[i + 1: i + 5]
+                num += data[i + 1 : i + 5]
                 if data[i] == "0":
                     break
             value = int(num, 2)
-            return LiteralValuePacket(version, packet_type, value), BITS(data[i + 5:])
+            return LiteralValuePacket(version, packet_type, value), BITS(data[i + 5 :])
         length_type = int(data[6])
         subpackets = []
         if length_type == 0:
             # next 15 bits are a number that represents the total length in bits of the sub-packets contained by this packet
             length = int(data[7:22], 2)
-            subpacket_bits = BITS(data[22: 22 + length])
+            subpacket_bits = BITS(data[22 : 22 + length])
             while sum(int(x) for x in subpacket_bits.data):
                 subpacket, subpacket_bits = subpacket_bits.__parse_packet()
                 subpackets.append(subpacket)
-            data = data[22 + length:]
+            data = data[22 + length :]
         else:
             # next 11 bits are a number that represents the number of sub-packets immediately contained by this packet
             length = int(data[7:18], 2)
@@ -220,12 +221,12 @@ class BITS:
 
     @classmethod
     def from_file(cls, filename: str) -> "BITS":
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             hex_data = f.read().rstrip()
         return cls.from_hex(hex_data)
 
 
-def day16a(filename:str) -> int:
+def day16a(filename: str) -> int:
     bits = BITS.from_file(filename)
     packet = bits.parse_packet()
     return packet.version_sum()

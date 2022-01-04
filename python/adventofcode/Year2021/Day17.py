@@ -235,16 +235,18 @@ class ProbeLauncher:
         max_steps = abs(self.target_y_min) * 2
         valid_velocities = set()
         for t in range(1, max_steps + 1):
-            vy_min = int(np.ceil((self.target_y_min + sum_to(t-1)) / t))
-            vy_max = int(np.floor((self.target_y_max + sum_to(t-1)) / t))
+            vy_min = int(np.ceil((self.target_y_min + sum_to(t - 1)) / t))
+            vy_max = int(np.floor((self.target_y_max + sum_to(t - 1)) / t))
             vy_range = range(vy_min, vy_max + 1)
 
-            vx_min = int(np.ceil((self.target_x_min + sum_to(t-1)) / t))  # discard vx that stop in less than t steps
-            vx_max = int(np.floor((self.target_x_max + sum_to(t-1)) / t))
+            vx_min = int(
+                np.ceil((self.target_x_min + sum_to(t - 1)) / t)
+            )  # discard vx that stop in less than t steps
+            vx_max = int(np.floor((self.target_x_max + sum_to(t - 1)) / t))
 
             vx_range = chain(
                 dropwhile(lambda v: v < t, range(vx_min, vx_max + 1)),
-                takewhile(lambda v: v < t, range(vx_min_stopping, vx_max_stopping + 1))
+                takewhile(lambda v: v < t, range(vx_min_stopping, vx_max_stopping + 1)),
             )
 
             valid_velocities.update(product(vx_range, vy_range))
@@ -252,7 +254,7 @@ class ProbeLauncher:
 
     @classmethod
     def from_file(cls, filename: str) -> "ProbeLauncher":
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             data = f.read().rstrip()
         x_min, x_max, y_min, y_max = map(int, re.findall(r"(-?\d+)", data))
         return cls(x_min, x_max, y_min, y_max, x_init=0, y_init=0)
