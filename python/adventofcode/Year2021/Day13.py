@@ -146,7 +146,7 @@ def day13b(filename: str):
                 print('#', end='')
             else:
                 print(' ', end='')
-        print()
+
 
 
 

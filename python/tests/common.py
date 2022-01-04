@@ -7,13 +7,6 @@ def validate_problem_test(year: str, day: str, part: str, test: str) -> tuple[in
     input_fname = f"{day_dir}/day{day}_input_test_{test}.txt"
     result_fname = f"{day_dir}/day{day}{part}_result_test_{test}.txt"
 
-    # with (
-    #     open(f"{day_dir}/{input_fname}") as test_input,
-    #     open(f"{day_dir}/{result_fname}") as test_result,
-    # ):
-    #     input = test_input.read().splitlines()
-    #     result = int(test_result.read())
-    #     return aoc.AVAILABLE_SOLVERS[year][f"{day}{part}"](input), result
     solver = aoc.AVAILABLE_SOLVERS[year][f"{day}{part}"]
     with open(result_fname, "r") as test_result:
         result = int(test_result.read())

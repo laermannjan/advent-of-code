@@ -110,7 +110,7 @@ import re
 from dataclasses import dataclass
 from adventofcode.lib import sum_to, sum_to_inverse
 import numpy as np
-from itertools import product, chain, takewhile
+from itertools import product, chain, takewhile, dropwhile
 
 
 @dataclass
@@ -136,7 +136,7 @@ class ProbeLauncher:
         Therefore, we can simply sum up the integers from 1 to the step_size before last.
 
         """
-        last_step_size = abs(self.target_area.y_min)
+        last_step_size = abs(self.target_y_min)
         return int(sum_to(last_step_size - 1))
 
     @property
@@ -241,10 +241,12 @@ class ProbeLauncher:
 
             vx_min = int(np.ceil((self.target_x_min + sum_to(t-1)) / t))  # discard vx that stop in less than t steps
             vx_max = int(np.floor((self.target_x_max + sum_to(t-1)) / t))
+
             vx_range = chain(
-                takewhile(lambda v: v >= t, range(vx_min, vx_max + 1)),
+                dropwhile(lambda v: v < t, range(vx_min, vx_max + 1)),
                 takewhile(lambda v: v < t, range(vx_min_stopping, vx_max_stopping + 1))
             )
+
             valid_velocities.update(product(vx_range, vy_range))
         return valid_velocities
 
