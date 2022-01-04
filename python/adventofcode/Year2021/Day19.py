@@ -363,94 +363,117 @@ In the above example, scanners 2 (1105,-1205,1229) and 3 (-92,-2380,-20) are the
 What is the largest Manhattan distance between any two scanners?
 """
 
-from collections import defaultdict
+from collections import Counter
 from itertools import combinations
 
 
-def relocate(scanners):
-    located_beacons = set(scanners[0])
-    located_scanner = {(0, 0, 0)}
-    scanners = scanners[1:]
+class ScannedSpace:
+    def __init__(self, scanner_reports: list[list[tuple[int, int, int]]]):
+        self.unaligned_scans = scanner_reports[1:]
+        self.scanners = {(0, 0, 0)}
+        self.beacons: set[tuple[int, int, int]] = set(scanner_reports[0])
 
-    while scanners:
-        matched_scanner, matched_scanner_pos, matched_beacons = matching(
-            located_beacons, scanners
+    @classmethod
+    def beacon_rotations(cls, x: int, y: int, z: int) -> list[tuple[int, int, int]]:
+        return [
+            rotation
+            for rotation in [
+                (x, y, z),
+                (-y, x, z),
+                (-x, -y, z),
+                (y, -x, z),
+                (x, -z, y),
+                (z, x, y),
+                (-x, z, y),
+                (-z, -x, y),
+                (x, -y, -z),
+                (y, x, -z),
+                (-x, y, -z),
+                (-y, -x, -z),
+                (x, z, -y),
+                (-z, x, -y),
+                (-x, -z, -y),
+                (z, -x, -y),
+                (-z, y, x),
+                (-y, -z, x),
+                (z, -y, x),
+                (y, z, x),
+                (-y, z, -x),
+                (-z, -y, -x),
+                (y, -z, -x),
+                (z, y, -x),
+            ]
+        ]
+
+    @classmethod
+    def scan_rotations(
+        cls, scan: list[tuple[int, int, int]]
+    ) -> list[list[tuple[int, int, int]]]:
+        # get all rotations per beacon, then zip to group by scanner_report
+        return [*zip(*[cls.beacon_rotations(*beacon) for beacon in scan])]
+
+    @classmethod
+    def shift_scan(cls, scan, dx, dy, dz):
+        return [(x + dx, y + dy, z + dz) for (x, y, z) in scan]
+
+    @property
+    def max_scanner_distance(self):
+        return max(sum(abs(c1 - c2) for c1, c2 in zip(s1, s2)) for s1, s2 in combinations(self.scanners, 2))
+
+    def find_scanner(
+        self, scan: list[tuple[int, int, int]]
+    ) -> tuple[tuple[int, int, int], list[tuple[int, int, int]]] | tuple[None, None]:
+        """
+        Tries to find the scanner by matching a scan with the set of known beacons.
+        Returns scanner position and adjusted beacon scans if successful; None, None otherwise.
+
+        If more than 12 beacons have the same shift to an entry in the scan report,
+        this must also be the shift of the unknown scanner w.r.t. (0, 0, 0).
+        """
+        for rotated_scan in self.scan_rotations(scan):
+            shift, count = Counter(
+                (x2 - x1, y2 - y1, z2 - z1)
+                for x1, y1, z1 in rotated_scan
+                for x2, y2, z2 in self.beacons
+            ).most_common(1)[0]
+            if count >= 12:
+                return shift, self.shift_scan(rotated_scan, *shift)
+
+        return None, None
+
+    def align_scanners(self):
+        while self.unaligned_scans:
+            scan = self.unaligned_scans.pop(0)
+            scanner, aligned_beacons = self.find_scanner(scan)
+            if scanner:
+                self.scanners.add(scanner)
+                self.beacons |= set(aligned_beacons)
+            else:
+                # maybe we can figure this one out later with more fixed beacons
+                self.unaligned_scans.append(scan)
+
+    @classmethod
+    def from_file(cls, filename: str):
+        with open(filename, "r") as f:
+            scanner_reports = f.read().split("\n\n")
+        return cls(
+            [
+                [
+                    tuple(map(int, beacon.split(",")))
+                    for beacon in scanner_report.splitlines()[1:]
+                ]
+                for scanner_report in scanner_reports
+            ]
         )
-        located_beacons |= set(matched_beacons)
-        located_scanner.add(matched_scanner_pos)
-        scanners.remove(matched_scanner)
-
-    return located_scanner, located_beacons
 
 
-def get_all_orientations(x, y, z):
-    return [
-        (x, y, z),
-        (-y, x, z),
-        (-x, -y, z),
-        (y, -x, z),
-        (x, -z, y),
-        (z, x, y),
-        (-x, z, y),
-        (-z, -x, y),
-        (x, -y, -z),
-        (y, x, -z),
-        (-x, y, -z),
-        (-y, -x, -z),
-        (x, z, -y),
-        (-z, x, -y),
-        (-x, -z, -y),
-        (z, -x, -y),
-        (-z, y, x),
-        (-y, -z, x),
-        (z, -y, x),
-        (y, z, x),
-        (-y, z, -x),
-        (-z, -y, -x),
-        (y, -z, -x),
-        (z, y, -x),
-    ]
+def day19a(filename: str) -> int:
+    scanner_space = ScannedSpace.from_file(filename)
+    scanner_space.align_scanners()
+    return len(scanner_space.beacons)
 
 
-def get_all_orient_beacons(scanner):
-    return [*zip(*[get_all_orientations(*p) for p in scanner])]
-
-
-def matching(located, scanners):
-    for scanner in scanners:
-        for beacons in get_all_orient_beacons(scanner):
-            distance_counter = defaultdict(int)
-            for b1 in located:
-                for b2 in beacons:
-                    distance_counter[tuple([a - b for a, b in zip(b1, b2)])] += 1
-            counter_max = sorted(distance_counter.items(), key=lambda i: i[1])[::-1][0]
-            if counter_max[1] >= 12:
-                diff = counter_max[0]
-                return (
-                    scanner,
-                    diff,
-                    [(x + diff[0], y + diff[1], z + diff[2]) for x, y, z in beacons],
-                )
-
-
-def day19a(filename: str):
-    with open(filename, "r") as f:
-        data = f.read().splitlines()
-    scanners = [
-        [tuple(map(int, j.split(","))) for j in i.split("\n")[1:]]
-        for i in "\n".join(data).split("\n\n")
-    ]
-    _, beacons = relocate(scanners)
-    return len(beacons)
-
-
-def day19b(filename: str):
-    with open(filename, "r") as f:
-        data = f.read().splitlines()
-    scanners = [
-        [tuple(map(int, j.split(","))) for j in i.split("\n")[1:]]
-        for i in "\n".join(data).split("\n\n")
-    ]
-    scanners_pos, _ = relocate(scanners)
-    scanner_pairs = combinations(list(scanners_pos), 2)
-    return max(sum(abs(x - y) for x, y in zip(a, b)) for a, b in scanner_pairs)
+def day19b(filename: str) -> int:
+    scanner_space = ScannedSpace.from_file(filename)
+    scanner_space.align_scanners()
+    return scanner_space.max_scanner_distance
