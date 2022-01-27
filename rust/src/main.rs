@@ -10,6 +10,8 @@ use crate::Year2021::day02a;
 use crate::Year2021::day02b;
 use crate::Year2021::day03a;
 use crate::Year2021::day03b;
+use crate::Year2021::day04a;
+use crate::Year2021::day04b;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -33,6 +35,8 @@ fn main() {
         "2b" => day02b(&puzzle_input),
         "3a" => day03a(&puzzle_input),
         "3b" => day03b(&puzzle_input),
+        "4a" => day04a(&puzzle_input),
+        "4b" => day04b(&puzzle_input),
         _ => 0,
     };
     println!("Solution for Advent of Code {year}, Day {day} - Part {part}: {result}");
