@@ -4,14 +4,7 @@ use std::fs;
 
 #[allow(non_snake_case)]
 mod Year2021;
-use crate::Year2021::day01a;
-use crate::Year2021::day01b;
-use crate::Year2021::day02a;
-use crate::Year2021::day02b;
-use crate::Year2021::day03a;
-use crate::Year2021::day03b;
-use crate::Year2021::day04a;
-use crate::Year2021::day04b;
+use crate::Year2021::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -37,6 +30,8 @@ fn main() {
         "3b" => day03b(&puzzle_input),
         "4a" => day04a(&puzzle_input),
         "4b" => day04b(&puzzle_input),
+        "5a" => day05a(&puzzle_input),
+        "5b" => day05b(&puzzle_input),
         _ => 0,
     };
     println!("Solution for Advent of Code {year}, Day {day} - Part {part}: {result}");

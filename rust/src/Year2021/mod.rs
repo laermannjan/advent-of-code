@@ -13,3 +13,7 @@ pub use day03::day03b;
 mod day04;
 pub use day04::day04a;
 pub use day04::day04b;
+
+mod day05;
+pub use day05::day05a;
+pub use day05::day05b;
