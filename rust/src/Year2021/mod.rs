@@ -8,4 +8,4 @@ pub use day02::day02b;
 
 mod day03;
 pub use day03::day03a;
-// pub use day02::day03b;
+pub use day03::day03b;
