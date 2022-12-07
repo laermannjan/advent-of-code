@@ -7,3 +7,11 @@ Solve the first part to get access to the second.
 The puzzles are self-contained and are not related to each other despite through some great story telling.
 Solving a puzzle means computing some small output given your input.
 The input is personalized to your account.
+
+*** Getting the data
+You can either copy-paste the input from the website or use the [[download_input]] script.
+This depends on the [[https://github.com/wimglenn/advent-of-code-data][aocd]] utility.
+
+
+# ** Setup
+# ** Benchmarks
