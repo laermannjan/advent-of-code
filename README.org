@@ -1,0 +1,9 @@
+* [[http://adventofcode.com][🎅 Advent of Code 💻]]
+** Getting started
+Go to [[http://adventofcode.com][adventofcode.com]] and sign up with your GitHub account.
+You'll be given a list of puzzles, one for each day of December until Christmas.
+Each puzzle is two parts that build on a theme.
+Solve the first part to get access to the second.
+The puzzles are self-contained and are not related to each other despite through some great story telling.
+Solving a puzzle means computing some small output given your input.
+The input is personalized to your account.
