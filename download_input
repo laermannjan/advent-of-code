@@ -37,6 +37,10 @@ help() {
     exit 2
 }
 
+echoerr() {
+    echo "ERROR: $1" 1>&2
+}
+
 check_aocd() {
     if ! command -v aocd &> /dev/null
     then
@@ -61,7 +65,7 @@ check_year() {
     local year="$1"
     if [ "$year" != "" ] && { [ "$year" -lt 2015 ] || [ "$year" -gt "$this_year" ]; }
     then
-        echo "Invalid year: $year"
+        echoerr "Invalid year: $year"
         help
     fi
 }
@@ -81,7 +85,7 @@ check_day() {
 
     if [ "$invalid" = true ]
     then
-        echo "Invalid day: $day (year: $year)"
+        echoerr "Invalid day: $day (year: $year)"
         help
     fi
 }
