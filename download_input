@@ -3,10 +3,23 @@
 this_year=$(date +%Y)
 this_day=$(date +%d)
 
+download_dir() {
+    local year="$1"
+    local day="$2"
+    printf -v day "%02d" "$day"
+    echo "./data/$year/day$day"
+}
+
+fname() {
+    local day="$1"
+    printf -v day "%02d" "$day"
+    echo "day${day}_input_puzzle.txt"
+}
+
 help() {
     local script_name
     script_name=$(basename "$0")
-    echo "Downloads the input data from adventofcode.com into './data/<year>/day<day>.txt'"
+    echo "Downloads the input data from adventofcode.com into './data/<year>/day<day>/day<day>_input_puzzle.txt'"
     echo
     echo "Usage: $script_name [ OPTIONS ]"
     echo "Options:"
@@ -57,9 +70,10 @@ check_day() {
     local year="$1"
     local day="$2"
 
-
     local invalid=true
-    local max=$(max_day "$year")
+    local max
+    max=$(max_day "$year")
+
     if [ "$year" != "" ] && [ "$day" != "" ] && [ "$day" -ge 1 ] && [ "$day" -le "$max" ]
     then
         invalid=false
@@ -72,18 +86,20 @@ check_day() {
     fi
 }
 
-
-
-
 download_day() {
     local year=$1
     local day=$2
     local force=$3
 
-    local input_dir="data/$year"
-    local padded_day=$(printf "%02d" $day)
-    local input_file="${input_dir}/day${padded_day}.txt"
-    if [ -f "$input_file" ] && [ "$force" = false ]
+    local input_dir
+    local input_fname
+    local input_path
+
+    input_dir=$(download_dir "$year" "$day")
+    input_fname=$(fname "$day")
+    input_path="$input_dir/$input_fname"
+
+    if [ -f "$input_path" ] && [ "$force" = false ]
     then
         echo "Input for day $day already exists. Skipping."
         return
@@ -91,7 +107,7 @@ download_day() {
 
     echo -n "Downloading input for $year-$day..."
     mkdir -p "$input_dir"
-    aocd "$day" "$year" > "$input_file"
+    aocd "$day" "$year" > "$input_path"
     echo "done."
 }
 
@@ -112,7 +128,9 @@ download_all() {
     for year in $years
     do
         local day
-        local max=$(max_day "$year")
+        local max
+        max=$(max_day "$year")
+
         for day in $(seq 1 "$max")
         do
             download_day "$year" "$day" "$force"
