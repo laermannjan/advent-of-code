@@ -1,0 +1,68 @@
+#!/bin/bash
+
+help() {
+    echo "Get the path to the puzzle input of a given year and day of advent of code."
+    echo
+    echo "Usage: $0 [OPTION]..."
+    echo "  -y, --year YEAR     The year of the puzzle input"
+    echo "  -d, --day DAY       The day of the puzzle input"
+    echo "  -h, --help          Display this help and exit"
+    exit 2
+}
+
+echoerr() {
+    echo "ERROR: $1" 1>&2
+}
+
+download_dir() {
+    local year="$1"
+    local day="$2"
+    printf -v day "%02d" "$day"
+    echo "./data/$year/day$day"
+}
+
+fname() {
+    local day="$1"
+    printf -v day "%02d" "$day"
+    echo "day${day}_input_puzzle.txt"
+}
+
+main() {
+    local year="$1"
+    local day="$2"
+    local dir
+    local file
+
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            -y|--year)
+                year="$2"
+                shift 2
+                ;;
+            -d|--day)
+                day="$2"
+                shift 2
+                ;;
+            -h|--help)
+                help
+                ;;
+            *)
+                echo "Unknown option: $1"
+                help
+                ;;
+        esac
+    done
+
+
+    if [ -z "$year" ] || [ -z "$day" ]; then
+        echoerr "Missing year or day"
+        help
+    fi
+    dir="$(download_dir "$year" "$day")"
+    file="$(fname "$day")"
+
+    echo "$dir/$file"
+}
+
+main "$@"
+
