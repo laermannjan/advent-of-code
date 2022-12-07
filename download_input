@@ -148,26 +148,34 @@ main() {
     local all=false
     local force=false
 
-    while [ "$1" != "" ]
+    while [ "$#" -gt 0 ]
     do
-        case $1 in
-            -h | --help )           help
-                                    ;;
-            -y | --year )           shift
-                                    year=$1
-                                    ;;
-            -d | --day )            shift
-                                    day=$1
-                                    ;;
-            -a | --all )            all=true
-                                    ;;
-            -f | --force )          force=true
-                                    ;;
-            * )                     help
+        case "$1" in
+            -y|--year)
+                year="$2"
+                shift 2
+                ;;
+            -d|--day)
+                day="$2"
+                shift 2
+                ;;
+            -a|--all)
+                all=true
+                shift
+                ;;
+            -f|--force) 
+                force=true
+                shift
+                ;;
+            -h|--help)
+                help
+                ;;
+            *)                     
+                echo "Unknown option: $1"
+                help
+                ;;
         esac
-        shift
     done
-
 
     check_aocd
 
