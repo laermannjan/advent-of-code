@@ -1,11 +1,2 @@
-[package]
-name = "adventofcode"
-version = "0.1.0"
-edition = "2021"
-authors = ["laermannjan"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-regex = { version = "~1.5.4" }
-itertools = { version = "~0.8.0" }
+[workspace]
+members = ["aoc-2021"]
