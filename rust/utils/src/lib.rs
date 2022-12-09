@@ -1,12 +1,12 @@
-use std::{process::Command, time::Duration};
+use std::process::Command;
 
 pub const ANSI_ITALIC: &str = "\x1b[3m";
 pub const ANSI_BOLD: &str = "\x1b[1m";
 pub const ANSI_RESET: &str = "\x1b[0m";
 
-pub fn timed_func<I, R>(func: fn(I) -> R, input: I) -> (R, String) {
+pub fn timed_func<I: Clone, R>(func: impl Fn(I) -> R, input: I) -> (R, String) {
     let start = std::time::Instant::now();
-    let result = func(input);
+    let result = func(input.clone());
     let duration = start.elapsed();
 
     let formatted_duration = format!("{} µs", duration.as_micros());
@@ -15,7 +15,7 @@ pub fn timed_func<I, R>(func: fn(I) -> R, input: I) -> (R, String) {
 
 #[macro_export]
 macro_rules! solve {
-    ($part:literal, $func:ident, $input:expr) => {
+    ($part:literal, $func:ident, $input:expr) => {{
         let (result, duration) = utils::timed_func($func, $input);
 
         match result {
@@ -37,7 +37,15 @@ macro_rules! solve {
                 utils::ANSI_RESET
             ),
         }
-    };
+    }};
+}
+
+#[macro_export]
+macro_rules! parse {
+    ($func:ident, $input:expr) => {{
+        let (parsed, duration) = utils::timed_func($func, $input);
+        parsed
+    }};
 }
 
 #[macro_export]
@@ -52,16 +60,21 @@ macro_rules! main {
                 utils::ANSI_RESET
             );
             let input = utils::get_puzzle_input($year, $day);
+            let parsed_input = utils::parse!(parse_input, &input);
             print!(" 🧩 ");
-            utils::solve!("a", part_one, &input);
+            utils::solve!("a", part_one, parsed_input.clone());
             print!(" 🧩 ");
-            utils::solve!("b", part_two, &input);
+            utils::solve!("b", part_two, parsed_input.clone());
         }
     };
 }
 
 pub fn get_puzzle_input(year: u32, day: u8) -> String {
     read_data_file(year, day, None, None)
+}
+
+pub fn get_test_input(year: u32, day: u8) -> String {
+    read_data_file(year, day, Some(1), None)
 }
 
 fn read_data_file(year: u32, day: u8, test: Option<u8>, part: Option<u8>) -> String {
