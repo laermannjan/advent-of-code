@@ -90,11 +90,11 @@ pub fn part_one(input: &str) -> Option<i32> {
                 "Z" => Shape::Scissors,
                 _ => panic!("Invalid shape"),
             };
-            dbg!(Round {
+            Round {
                 our_shape,
                 their_shape,
             }
-            .points_won() as i32)
+            .points_won() as i32
         })
         .sum::<i32>();
 
@@ -129,11 +129,11 @@ pub fn part_two(input: &str) -> Option<i32> {
 
                 _ => panic!("Invalid shape"),
             };
-            dbg!(Round {
+            Round {
                 our_shape,
                 their_shape,
             }
-            .points_won() as i32)
+            .points_won() as i32
         })
         .sum::<i32>();
 
