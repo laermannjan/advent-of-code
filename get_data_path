@@ -133,8 +133,8 @@ main() {
                 ;;
             --create-if-not-exist)
                 case "$2" in
-                    true|1|yes) dummy=true ;;
-                    false|0|no) dummy=false ;;
+                    True|true|1|yes) dummy=true ;;
+                    False|false|0|no) dummy=false ;;
                     *) help ;;
                 esac
                 shift 2
@@ -162,14 +162,9 @@ main() {
 
     local path="$dir/$file"
 
-    if [ ! -f "$path" ]; then
-        if [ "$dummy" = true ]; then
+    if [ ! -f "$path" ] && [ "$dummy" = true ]; then
             mkdir -p "$dir"
             touch "$path"
-        else
-            echoerr "File does not exist: $path"
-            exit 1
-        fi
     fi
     echo "$path"
 }
