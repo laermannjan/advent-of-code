@@ -31,7 +31,7 @@ mod tests {
     fn test_part_one() {
         let input = utils::get_test_input(2022, 1);
         let parsed_input = parse_input(&input);
-        let expected = utils::get_test_result(2022, 1, 1);
+        let expected = utils::get_test_result(2022, 1, 1).parse().unwrap();
         assert_eq!(part_one(parsed_input), Some(expected));
     }
 
@@ -39,7 +39,7 @@ mod tests {
     fn test_part_two() {
         let input = utils::get_test_input(2022, 1);
         let parsed_input = parse_input(&input);
-        let expected = utils::get_test_result(2022, 1, 2);
+        let expected = utils::get_test_result(2022, 1, 2).parse().unwrap();
         assert_eq!(part_two(parsed_input), Some(expected));
     }
 }

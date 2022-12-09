@@ -100,11 +100,15 @@ pub fn get_test_input(year: u32, day: u8) -> String {
     read_data_file(&get_test_input_path(year, day))
 }
 
-pub fn get_test_result(year: u32, day: u8, part: u8) -> i32 {
-    read_data_file(&get_test_result_path(year, day, part))
+pub fn get_test_result(year: u32, day: u8, part: u8) -> String {
+    let result = read_data_file(&get_test_result_path(year, day, part))
         .trim()
-        .parse::<i32>()
-        .unwrap_or(1337)
+        .to_string();
+    if result.is_empty() {
+        return "1337".to_string();
+    } else {
+        return result;
+    }
 }
 
 fn read_data_file(data_path: &str) -> String {
