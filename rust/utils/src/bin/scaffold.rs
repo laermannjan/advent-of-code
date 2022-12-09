@@ -2,7 +2,8 @@ use std::{fs::OpenOptions, io::Write, process::Command};
 
 use clap::Parser;
 use utils::{
-    create_puzzle_input_dummy, create_test_input_dummy, get_puzzle_input_path, get_test_input_path,
+    create_puzzle_input_dummy, create_test_input_dummy, create_test_result_dummy,
+    get_puzzle_input_path, get_test_input_path, get_test_result_path,
 };
 
 // parser that reads the year as u32 and day as u8
@@ -41,14 +42,16 @@ mod tests {
     fn test_part_one() {
         let input = utils::get_test_input(YEAR, DAY);
         let parsed_input = parse_input(&input);
-        assert_eq!(part_one(parsed_input), Some(1337));
+        let expected = utils::get_test_result(YEAR, DAY, 1);
+        assert_eq!(part_one(parsed_input), Some(expected));
     }
 
     #[test]
     fn test_part_two() {
         let input = utils::get_test_input(YEAR, DAY);
         let parsed_input = parse_input(&input);
-        assert_eq!(part_two(parsed_input), Some(1337));
+        let expected = utils::get_test_result(YEAR, DAY, 2);
+        assert_eq!(part_two(parsed_input), Some(expected));
     }
 }
 "###;
@@ -178,6 +181,16 @@ fn create_data(year: u32, day: u8) -> Result<(), std::io::Error> {
     } else {
         create_test_input_dummy(year, day);
         println!("Created test input file => {}", test_input_path);
+    }
+
+    for part in 1..=2 {
+        let test_result_path = get_test_result_path(year, day, part);
+        if std::path::Path::new(&test_result_path).exists() {
+            println!("Test result file already exists => {}", test_result_path);
+        } else {
+            create_test_result_dummy(year, day, part);
+            println!("Created test result file => {}", test_result_path);
+        }
     }
 
     Ok(())

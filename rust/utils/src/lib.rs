@@ -100,6 +100,13 @@ pub fn get_test_input(year: u32, day: u8) -> String {
     read_data_file(&get_test_input_path(year, day))
 }
 
+pub fn get_test_result(year: u32, day: u8, part: u8) -> i32 {
+    read_data_file(&get_test_result_path(year, day, part))
+        .trim()
+        .parse::<i32>()
+        .unwrap_or(1337)
+}
+
 fn read_data_file(data_path: &str) -> String {
     std::fs::read_to_string(data_path.clone())
         .expect(&format!("could not open data file {}", &data_path))
@@ -117,6 +124,12 @@ pub fn get_test_input_path(year: u32, day: u8) -> String {
 }
 pub fn create_test_input_dummy(year: u32, day: u8) -> String {
     get_data_path(year, day, Some(1), None, true)
+}
+pub fn get_test_result_path(year: u32, day: u8, part: u8) -> String {
+    get_data_path(year, day, Some(1), Some(part), false)
+}
+pub fn create_test_result_dummy(year: u32, day: u8, part: u8) -> String {
+    get_data_path(year, day, Some(1), Some(part), true)
 }
 
 fn get_data_path(
