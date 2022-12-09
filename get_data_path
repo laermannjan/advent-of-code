@@ -8,14 +8,14 @@ help() {
     echo "Get the path to the puzzle input of a given year and day of advent of code."
     echo
     echo "Usage: $script_name [OPTION]..."
-    echo "  -y, --year YEAR       The year of the puzzle input"
-    echo "  -d, --day DAY         The day of the puzzle input"
-    echo "  -t, --test TEST       Return input for text TEST"
+    echo "  -y, --year YEAR              The year of the puzzle input"
+    echo "  -d, --day DAY                The day of the puzzle input"
+    echo "  -t, --test TEST              Return input for text TEST"
     echo "    if no TEST is given, return the input for the first test"
-    echo "  -p, --part PART       Return result for part PART of test TEST"
+    echo "  -p, --part PART              Return result for part PART of test TEST"
     echo "    a is equivalent to 1, b is equivalent to 2"
-    echo "      --create-dummy    Create an empty dummy file if it doesn't exist already"
-    echo "  -h, --help            Display this help and exit"
+    echo "      --create-if-not-exist    Create an empty dummy file if it doesn't exist already"
+    echo "  -h, --help                   Display this help and exit"
     echo
     echo "Examples: "
     echo "  $script_name -y 2019 -d 1               # puzzle input of 2019-01"
@@ -97,7 +97,8 @@ main() {
     local day
     local part
     local test
-    local dummy=false
+    local dummy
+
 
     while [ "$#" -gt 0 ]; do
         case "$1" in
@@ -130,9 +131,13 @@ main() {
                 esac
                 shift 2
                 ;;
-            --create-dummy)
-                dummy=true
-                shift
+            --create-if-not-exist)
+                case "$2" in
+                    true|1|yes) dummy=true ;;
+                    false|0|no) dummy=false ;;
+                    *) help ;;
+                esac
+                shift 2
                 ;;
             -h|--help)
                 help
