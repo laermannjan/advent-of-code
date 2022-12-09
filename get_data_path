@@ -1,5 +1,7 @@
 #!/bin/bash
 
+base_dir=$(dirname "$0")
+
 help() {
     local script_name
     script_name=$(basename "$0")
@@ -30,7 +32,7 @@ download_dir() {
     local year="$1"
     local day="$2"
     printf -v day "%02d" "$day"
-    echo "./data/$year/day$day"
+    echo "data/$year/day$day"
 }
 
 fname() {
@@ -43,10 +45,8 @@ fname() {
     local prefix="day$day"
 
     if [ -z "$test" ]; then
-        echo "${prefix}_puzzle_input.txt"
-    fi
-
-    if [ -z "$part" ]; then
+        echo "${prefix}_input_puzzle.txt"
+    elif [ -z "$part" ]; then
         echo "${prefix}_input_test_${test}.txt"
     else
         echo "${prefix}${part}_result_test_${test}.txt"
@@ -149,7 +149,7 @@ main() {
     dir="$(download_dir "$year" "$day")"
     file="$(fname "$day" "$test" "$part")"
 
-    local path="$dir/$file"
+    local path="$base_dir/$dir/$file"
 
     if [ ! -f "$path" ]; then
         echoerr "File not found: $path"
