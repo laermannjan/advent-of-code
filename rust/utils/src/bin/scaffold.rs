@@ -1,6 +1,9 @@
 use std::{fs::OpenOptions, io::Write, process::Command};
 
 use clap::Parser;
+use utils::{
+    create_puzzle_input_dummy, create_test_input_dummy, get_puzzle_input_path, get_test_input_path,
+};
 
 // parser that reads the year as u32 and day as u8
 #[derive(Parser, Debug)]
@@ -90,13 +93,32 @@ fn create_day(year: u32, day: u8) -> Result<(), std::io::Error> {
         .replace("DAY", &format!("{}", day));
 
     if std::path::Path::new(&path).exists() {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::AlreadyExists,
-            "File already exists",
-        ));
+        println!("Solution binary already exists => {}", &path);
+    } else {
+        create_file(&path, &template)?;
+        println!("Created solution binary => {}", &path);
+    }
+    Ok(())
+}
+
+fn create_data(year: u32, day: u8) -> Result<(), std::io::Error> {
+    let puzzle_input_path = get_puzzle_input_path(year, day);
+
+    if std::path::Path::new(&puzzle_input_path).exists() {
+        println!("Puzzle input file already exists => {}", puzzle_input_path);
+    } else {
+        create_puzzle_input_dummy(year, day);
+        println!("Created puzzle input file => {}", puzzle_input_path);
     }
 
-    create_file(&path, &template)?;
+    let test_input_path = get_test_input_path(year, day);
+    if std::path::Path::new(&test_input_path).exists() {
+        println!("Test input file already exists => {}", test_input_path);
+    } else {
+        create_test_input_dummy(year, day);
+        println!("Created test input file => {}", test_input_path);
+    }
+
     Ok(())
 }
 
@@ -104,13 +126,11 @@ fn scaffold_year(year: u32) -> Result<(), std::io::Error> {
     let crate_path = format!("{}/../aoc-{}", env!("CARGO_MANIFEST_DIR"), year);
 
     if std::path::Path::new(&crate_path).exists() {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::AlreadyExists,
-            "Crate already exists",
-        ));
+        println!("Crate already exists => {}", crate_path);
+    } else {
+        create_crate(year)?;
+        println!("Created crate => {}", crate_path);
     }
-
-    create_crate(year)?;
     Ok(())
 }
 
@@ -119,43 +139,26 @@ fn scaffold_day(year: u32, day: u8) -> Result<(), std::io::Error> {
     Ok(())
 }
 
+fn scaffold_data(year: u32, day: u8) -> Result<(), std::io::Error> {
+    create_data(year, day)?;
+    Ok(())
+}
+
 fn main() {
     let scaffold = Scaffold::parse();
 
-    match scaffold_year(scaffold.year) {
-        Ok(_) => println!(
-            "Created create for {} => ./aoc-{}",
-            scaffold.year, scaffold.year
-        ),
-        Err(e) => match e.kind() {
-            std::io::ErrorKind::AlreadyExists => {
-                println!(
-                    "Crate for {} already exists, skipping creation",
-                    scaffold.year
-                );
-            }
-            _ => {
-                println!("Error: {}", e);
-                std::process::exit(1);
-            }
-        },
+    if let Err(e) = scaffold_year(scaffold.year) {
+        println!("Failed to create year: {}", e);
+        std::process::exit(1);
     }
-    match scaffold_day(scaffold.year, scaffold.day) {
-        Ok(_) => println!(
-            "Created binary for day {} => ./aoc-{}/src/bin/{:02}.rs",
-            scaffold.day, scaffold.year, scaffold.day
-        ),
-        Err(e) => match e.kind() {
-            std::io::ErrorKind::AlreadyExists => {
-                println!(
-                    "File for Day {} binary already exists, skipping creation",
-                    scaffold.day
-                );
-            }
-            _ => {
-                println!("Error: {}", e);
-                std::process::exit(1);
-            }
-        },
+
+    if let Err(e) = scaffold_day(scaffold.year, scaffold.day) {
+        println!("Error: {}", e);
+        std::process::exit(1);
+    }
+
+    if let Err(e) = scaffold_data(scaffold.year, scaffold.day) {
+        println!("Error: {}", e);
+        std::process::exit(1);
     }
 }
