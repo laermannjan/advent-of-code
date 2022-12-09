@@ -1,7 +1,9 @@
 use itertools::Itertools;
 use std::collections::HashMap;
 
-fn parse_input(input: &str) -> Vec<((i32, i32), (i32, i32))> {
+type Input = Vec<((i32, i32), (i32, i32))>;
+
+fn parse_input(input: &str) -> Input {
     input
         .lines()
         .map(|l| {
@@ -38,18 +40,41 @@ fn count_overlaps(points: HashMap<(i32, i32), u32>, t: u32) -> usize {
     points.values().filter(|&&val| val >= t).count()
 }
 
-pub fn day05a(input: &str) -> usize {
-    let lines = parse_input(input);
+pub fn part_one(input: Input) -> Option<i32> {
+    let lines = input;
     let points = point_map(
         lines
             .iter()
             .copied()
             .filter(|((x1, y1), (x2, y2))| x1 == x2 || y1 == y2),
     );
-    count_overlaps(points, 2)
+    Some(count_overlaps(points, 2) as i32)
 }
-pub fn day05b(input: &str) -> usize {
-    let lines = parse_input(input);
+pub fn part_two(input: Input) -> Option<i32> {
+    let lines = input;
     let points = point_map(lines.iter().copied());
-    count_overlaps(points, 2)
+    Some(count_overlaps(points, 2) as i32)
+}
+
+utils::main!(2021, 5);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part_one() {
+        let input = utils::get_test_input(2021, 5);
+        let parsed_input = parse_input(&input);
+        let expected = utils::get_test_result(2021, 5, 1);
+        assert_eq!(part_one(parsed_input), Some(expected));
+    }
+
+    #[test]
+    fn test_part_two() {
+        let input = utils::get_test_input(2021, 5);
+        let parsed_input = parse_input(&input);
+        let expected = utils::get_test_result(2021, 5, 2);
+        assert_eq!(part_two(parsed_input), Some(expected));
+    }
 }
