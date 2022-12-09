@@ -69,6 +69,29 @@ macro_rules! main {
     };
 }
 
+pub fn run_day(year: u32, day: u8) -> Result<(), std::io::Error> {
+    let aoc_year = format!("aoc-{}", year);
+    let padded_day = format!("{:02}", day);
+    let args = vec![
+        "run",
+        "-p",
+        &aoc_year,
+        "--release",
+        "--quiet",
+        "--bin",
+        &padded_day,
+    ];
+    let mut cmd = Command::new("cargo").args(&args).spawn()?;
+
+    cmd.wait()?;
+
+    Ok(())
+}
+
+pub fn get_puzzle_bin(year: u32, day: u8) -> String {
+    format!("aoc-{}/src/bin/{:02}.rs", year, day)
+}
+
 pub fn get_puzzle_input(year: u32, day: u8) -> String {
     read_data_file(&get_puzzle_input_path(year, day))
 }

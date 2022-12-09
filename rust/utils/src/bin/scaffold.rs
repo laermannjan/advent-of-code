@@ -13,7 +13,11 @@ pub struct Scaffold {
     day: u8,
 }
 
-const TEMPLATE: &str = r###"utils = { path = \"../utils\" }"###;
+const DEFAULT_RUN_TEMPLATE: &str = r###"
+default-run = "aoc-YEAR"
+"###;
+
+const DEPS_TEMPLATE: &str = r###"utils = { path = \"../utils\" }"###;
 const DAY_TEMPLATE: &str = r###"type Input = Vec<i32>;
 
 pub fn parse_input(input: &str) -> Input {
@@ -49,6 +53,21 @@ mod tests {
 }
 "###;
 
+const MAIN_TEMPLATE: &str = r###"use std::path::Path;
+use utils::{get_puzzle_bin, run_day};
+
+fn main() {
+    for day in 1..=25 {
+        if !Path::new(&get_puzzle_bin(YEAR, day)).exists() {
+            println!(" 🚫 Day {} binary not found.", day);
+        } else if let Err(_) = run_day(YEAR, day) {
+            println!(" 🚫 Day {} failed to run", day)
+        }
+        println!("\n🎄🎊🎄✨🎄🎁🎄🎊🎄✨🎄🎁🎄\n");
+    }
+}
+"###;
+
 fn create_crate(year: u32) -> Result<(), std::io::Error> {
     let crate_path_prefix = format!("{}/../", env!("CARGO_MANIFEST_DIR"));
     Command::new("cargo")
@@ -62,7 +81,7 @@ fn create_crate(year: u32) -> Result<(), std::io::Error> {
             "-c",
             &format!(
                 "echo {} >> {}/aoc-{}/Cargo.toml",
-                TEMPLATE, crate_path_prefix, year
+                DEPS_TEMPLATE, crate_path_prefix, year
             ),
         ])
         .status()?
@@ -74,10 +93,52 @@ fn create_crate(year: u32) -> Result<(), std::io::Error> {
         ));
     }
 
+    add_default_run_to_cargo_toml(year)?;
+
+    create_file(
+        &format!("{}/aoc-{}/src/main.rs", crate_path_prefix, year),
+        &MAIN_TEMPLATE.replace("YEAR", &format!("{}", year)),
+    )?;
+
+    update_workspace_toml(year)?;
+
+    Ok(())
+}
+
+fn add_default_run_to_cargo_toml(year: u32) -> Result<(), std::io::Error> {
+    let toml_path = format!("{}/../aoc-{}/Cargo.toml", env!("CARGO_MANIFEST_DIR"), year);
+    let mut toml = std::fs::read_to_string(&toml_path).unwrap();
+    toml.insert_str(
+        toml.find("[dependencies]").unwrap(),
+        &DEFAULT_RUN_TEMPLATE.replace("YEAR", &format!("{}", year)),
+    );
+    create_file(&toml_path, &toml)?;
+    println!("Added default-run to {}", toml_path);
+    Ok(())
+}
+
+fn update_workspace_toml(year: u32) -> Result<(), std::io::Error> {
+    let toml_path = format!("{}/../Cargo.toml", env!("CARGO_MANIFEST_DIR"));
+    let mut toml = std::fs::read_to_string(&toml_path).unwrap();
+    toml.insert_str(
+        toml.find("members = [").unwrap() + 11,
+        &format!(r###""aoc-{}", "###, year),
+    );
+    create_file(&toml_path, &toml)?;
+    println!("🎉 Successfully added aoc-{} to the workspace", year);
     Ok(())
 }
 
 fn create_file(path: &str, content: &str) -> Result<(), std::io::Error> {
+    //create path of parent dir
+    std::fs::create_dir_all(std::path::Path::new(path).parent().unwrap())?;
+
+    let mut file = OpenOptions::new().write(true).create(true).open(path)?;
+    file.write_all(content.as_bytes())?;
+    Ok(())
+}
+
+fn create_new_file(path: &str, content: &str) -> Result<(), std::io::Error> {
     //create path of parent dir
     std::fs::create_dir_all(std::path::Path::new(path).parent().unwrap())?;
 
@@ -95,7 +156,7 @@ fn create_day(year: u32, day: u8) -> Result<(), std::io::Error> {
     if std::path::Path::new(&path).exists() {
         println!("Solution binary already exists => {}", &path);
     } else {
-        create_file(&path, &template)?;
+        create_new_file(&path, &template)?;
         println!("Created solution binary => {}", &path);
     }
     Ok(())
