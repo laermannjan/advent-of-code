@@ -14,6 +14,7 @@ help() {
     echo "    if no TEST is given, return the input for the first test"
     echo "  -p, --part PART       Return result for part PART of test TEST"
     echo "    a is equivalent to 1, b is equivalent to 2"
+    echo "      --create-dummy    Create an empty dummy file if it doesn't exist already"
     echo "  -h, --help            Display this help and exit"
     echo
     echo "Examples: "
@@ -96,6 +97,7 @@ main() {
     local day
     local part
     local test
+    local dummy=false
 
     while [ "$#" -gt 0 ]; do
         case "$1" in
@@ -128,6 +130,10 @@ main() {
                 esac
                 shift 2
                 ;;
+            --create-dummy)
+                dummy=true
+                shift
+                ;;
             -h|--help)
                 help
                 ;;
@@ -146,14 +152,19 @@ main() {
 
     local dir
     local file
-    dir="$(download_dir "$year" "$day")"
+    dir="$base_dir/$(download_dir "$year" "$day")"
     file="$(fname "$day" "$test" "$part")"
 
-    local path="$base_dir/$dir/$file"
+    local path="$dir/$file"
 
     if [ ! -f "$path" ]; then
-        echoerr "File not found: $path"
-        exit 1
+        if [ "$dummy" = true ]; then
+            mkdir -p "$dir"
+            touch "$path"
+        else
+            echoerr "File does not exist: $path"
+            exit 1
+        fi
     fi
     echo "$path"
 }
