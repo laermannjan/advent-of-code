@@ -1,3 +1,5 @@
+use id_tree::InsertBehavior::*;
+use id_tree::*;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_while1},
@@ -5,7 +7,7 @@ use nom::{
     sequence::{preceded, separated_pair},
     IResult,
 };
-type Input = Node;
+type Input = Tree<FsNode>;
 
 #[derive(Debug, Clone)]
 pub enum Line {
@@ -33,52 +35,9 @@ pub enum Entry {
 // }
 
 #[derive(Debug, Clone)]
-pub struct Node {
+pub struct FsNode {
+    name: String,
     size: u32,
-    children: Vec<Node>,
-}
-
-impl Node {
-    fn total_size(&self) -> u32 {
-        self.size + self.children.iter().map(|c| c.total_size()).sum::<u32>()
-    }
-
-    fn all_dirs(&self) -> Box<dyn Iterator<Item = &Node> + '_> {
-        Box::new(
-            std::iter::once(self).chain(
-                self.children
-                    .iter()
-                    .filter(|c| !c.children.is_empty())
-                    .flat_map(|c| c.all_dirs()),
-            ),
-        )
-    }
-
-    fn from(mut self, it: &mut dyn Iterator<Item = Line>) -> Self {
-        while let Some(line) = it.next() {
-            match line {
-                Line::Command(Command::Cd(path)) => match path.as_str() {
-                    "/" => {}
-                    ".." => break,
-                    _ => self.children.push(
-                        Node {
-                            size: 0,
-                            children: vec![],
-                        }
-                        .from(it),
-                    ),
-                },
-                Line::Entry(Entry::File { size, name: _ }) => {
-                    self.children.push(Node {
-                        size,
-                        children: vec![],
-                    });
-                }
-                _ => {}
-            }
-        }
-        self
-    }
 }
 
 fn parse_path(input: &str) -> IResult<&str, &str> {
@@ -124,22 +83,89 @@ impl Entry {
 }
 
 pub fn parse_input(input: &str) -> Input {
-    let mut lines = input.lines().map(|line| Line::parse(line).unwrap().1);
+    let lines = input.lines().map(|line| Line::parse(line).unwrap().1);
 
-    let root = Node {
-        size: 0,
-        children: vec![],
+    let mut tree = Tree::<FsNode>::new();
+    let root_id = tree
+        .insert(
+            Node::new(FsNode {
+                name: "/".to_owned(),
+                size: 0,
+            }),
+            AsRoot,
+        )
+        .unwrap();
+    let mut curr_id = root_id.clone();
+
+    for line in lines {
+        println!("{:?}", line);
+        match line {
+            Line::Command(Command::Cd(path)) => match path.as_str() {
+                "/" => {
+                    curr_id = root_id.clone();
+                }
+                ".." => {
+                    curr_id = tree.get(&curr_id).unwrap().parent().unwrap().clone();
+                }
+                dir => {
+                    let node = FsNode {
+                        name: dir.to_owned(),
+                        size: 0,
+                    };
+                    if let Some(child_id) = tree
+                        .get(&curr_id)
+                        .unwrap()
+                        .children()
+                        .iter()
+                        .find(|child| tree.get(child).unwrap().data().name == node.name)
+                    {
+                        curr_id = child_id.clone();
+                    } else {
+                        curr_id = tree.insert(Node::new(node), UnderNode(&curr_id)).unwrap();
+                    }
+                }
+            },
+            Line::Entry(Entry::File { size, name }) => {
+                let node = FsNode {
+                    name: name.to_owned(),
+                    size,
+                };
+                tree.insert(Node::new(node), UnderNode(&curr_id)).unwrap();
+            }
+            _ => {}
+        }
     }
-    .from(&mut lines);
 
-    root
+    for node_id in &mut tree
+        .traverse_post_order_ids(tree.root_node_id().unwrap())
+        .unwrap()
+    {
+        tree.get_mut(&node_id).unwrap().data_mut().size += tree
+            .children(&node_id)
+            .unwrap()
+            .map(|child| child.data().size)
+            .sum::<u32>();
+    }
+
+    // let mut s = String::new();
+    // tree.write_formatted(&mut s).unwrap();
+    // println!("{s}");
+
+    tree
 }
+
 pub fn part_one(input: Input) -> Option<i32> {
+    println!("{:?}", input.get(&input.root_node_id().unwrap()));
+
     Some(
         input
-            .all_dirs()
-            .map(|d| d.total_size())
-            .filter(|&s| s < 100_000)
+            .traverse_pre_order(input.root_node_id().unwrap())
+            .unwrap()
+            .filter(|&n| n.children().len() > 0 && n.data().size < 100_000)
+            .inspect(|node| {
+                dbg!(node);
+            })
+            .map(|node| node.data().size)
             .sum::<u32>() as i32,
     )
 }
@@ -148,14 +174,25 @@ pub fn part_two(input: Input) -> Option<i32> {
     let total_space = 70_000_000;
     let needed_space = 30_000_000;
 
-    let available_space = total_space - input.total_size();
+    let available_space = dbg!(
+        total_space
+            - input
+                .get(input.root_node_id().unwrap())
+                .unwrap()
+                .data()
+                .size
+    );
     let min_freeup_space = needed_space - available_space;
 
     Some(
         input
-            .all_dirs()
-            .map(|d| d.total_size())
-            .filter(|&d| d >= min_freeup_space)
+            .traverse_pre_order(input.root_node_id().unwrap())
+            .unwrap()
+            .filter(|&n| n.children().len() > 0 && n.data().size >= min_freeup_space)
+            .inspect(|node| {
+                dbg!(node);
+            })
+            .map(|node| node.data().size)
             .min()
             .unwrap() as i32,
     )
