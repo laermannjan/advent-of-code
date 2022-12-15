@@ -3,9 +3,9 @@ use utils::grid::{Coord, Direction, Grid};
 
 static DIRECTIONS: &[Direction] = &[
     Direction::North,
+    Direction::East,
     Direction::South,
     Direction::West,
-    Direction::East,
 ];
 
 type Input = Grid<u32>;
@@ -43,7 +43,24 @@ pub fn part_one(input: Input) -> Option<i32> {
 }
 
 pub fn part_two(input: Input) -> Option<i32> {
-    None
+    let scenic_scores = input.coords().map(|coord| {
+        DIRECTIONS
+            .iter()
+            .map(|direction| {
+                let mut trees_in_line = input.walk(&coord, direction);
+                let mut visible_trees = trees_in_line
+                    .take_while_ref(|other| input.get(&other).unwrap() < input.get(&coord).unwrap())
+                    .collect_vec();
+
+                if let Some(coord) = trees_in_line.next() {
+                    visible_trees.push(coord);
+                }
+                visible_trees.len()
+            })
+            .product::<usize>()
+    });
+
+    Some(scenic_scores.max().unwrap() as i32)
 }
 
 utils::main!(2022, 8);
