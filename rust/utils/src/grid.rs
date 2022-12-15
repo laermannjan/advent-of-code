@@ -24,15 +24,17 @@ impl std::fmt::Debug for Coord {
     }
 }
 
-impl From<(usize, usize)> for Coord {
-    fn from((x, y): (usize, usize)) -> Self {
-        Self::new(x as isize, y as isize)
-    }
-}
-
-impl From<(isize, isize)> for Coord {
-    fn from((x, y): (isize, isize)) -> Self {
-        Self::new(x, y)
+impl<T> From<(T, T)> for Coord
+where
+    T: TryInto<isize>,
+{
+    fn from((x, y): (T, T)) -> Self {
+        Self::new(
+            x.try_into()
+                .unwrap_or_else(|_| panic!("number too large for architecture")),
+            y.try_into()
+                .unwrap_or_else(|_| panic!("number too large for architecture")),
+        )
     }
 }
 
@@ -54,14 +56,16 @@ impl Coord {
         }
     }
 
-    pub fn r#move(&self, directions: &[Direction], steps: isize) -> Self {
-        directions
-            .iter()
-            .fold(self.clone(), |pos, dir| pos.move_once(dir, steps))
+    pub fn move_multiple<'a>(
+        &self,
+        directions: impl Iterator<Item = &'a Direction>,
+        steps: isize,
+    ) -> Self {
+        directions.fold(self.clone(), |pos, dir| pos.move_once(&dir, steps))
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Grid<T> {
     width: usize,
     height: usize,
@@ -158,6 +162,12 @@ where
         }
     }
 
+    pub fn set(&mut self, coord: &Coord, value: T) {
+        if let Some(index) = self.get_index(&coord) {
+            self.data[index] = value;
+        }
+    }
+
     pub fn coords(&self) -> impl Iterator<Item = Coord> {
         (0..self.width as isize)
             .cartesian_product(0..self.height as isize)
@@ -181,7 +191,7 @@ where
         predicate: impl Fn(&T) -> bool,
     ) -> Option<Coord> {
         let mut new_coord = coord.clone();
-        while let Some(coord) = self.step(&new_coord, direction) {
+        if let Some(coord) = self.step(&new_coord, direction) {
             new_coord = coord;
             if predicate(self.get(&new_coord).unwrap()) {
                 return Some(new_coord);
@@ -190,40 +200,32 @@ where
         return None;
     }
 
-    pub fn walk<'a>(
-        &'a self,
+    pub fn step_unless(
+        &self,
         coord: &Coord,
-        direction: &'a Direction,
-    ) -> impl Iterator<Item = Coord> + '_ {
+        direction: &Direction,
+        predicate: impl Fn(&T) -> bool,
+    ) -> Option<Coord> {
         let mut new_coord = coord.clone();
-        std::iter::from_fn(move || {
-            if let Some(coord) = self.step(&new_coord, direction) {
-                new_coord = coord;
-                return Some(new_coord.clone());
-            } else {
-                return None;
+        if let Some(coord) = self.step(&new_coord, direction) {
+            new_coord = coord;
+            if !predicate(self.get(&new_coord).unwrap()) {
+                return Some(new_coord);
             }
-        })
+        }
+        return None;
     }
 
-    pub fn walk_while<'a>(
-        &'a self,
-        coord: &Coord,
-        direction: &'a Direction,
-        predicate: impl Fn(&T) -> bool + 'a,
-    ) -> impl Iterator<Item = Coord> + '_ {
-        let mut new_coord = coord.clone();
-        std::iter::from_fn(move || {
-            if let Some(coord) = self.step_if(&new_coord, direction, &predicate) {
-                new_coord = coord;
-                return Some(new_coord.clone());
-            } else {
-                return None;
-            }
-        })
+    pub fn walk<'a>(&'a self, coord: &Coord, direction: &'a Direction) -> WalkIterator<T> {
+        WalkIterator {
+            current: coord.clone(),
+            direction,
+            grid: self,
+        }
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct WalkIterator<'a, T> {
     current: Coord,
     direction: &'a Direction,
@@ -242,6 +244,132 @@ where
             return Some(self.current.clone());
         } else {
             return None;
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    mod coord {
+        use super::*;
+        use rstest::rstest;
+
+        #[test]
+        fn test_from() {
+            let x = Coord::new(1, 2);
+            assert_eq!(x.x, 1);
+            assert_eq!(x.y, 2);
+        }
+
+        #[rstest]
+        #[case(Direction::North, 1, Coord::new(0, -1))]
+        #[case(Direction::South, 1, Coord::new(0, 1))]
+        #[case(Direction::East, 1, Coord::new(1, 0))]
+        #[case(Direction::West, 1, Coord::new(-1, 0))]
+        #[case(Direction::North, 2, Coord::new(0, -2))]
+        #[case(Direction::South, 3, Coord::new(0, 3))]
+        #[case(Direction::East, 4, Coord::new(4, 0))]
+        #[case(Direction::West, 5, Coord::new(-5, 0))]
+        fn test_move_once(
+            #[case] dir: Direction,
+            #[case] steps: isize,
+            #[case] expected_coord: Coord,
+        ) {
+            let x = Coord::new(0, 0);
+            let y = x.move_once(&dir, steps);
+            assert_eq!(y, expected_coord);
+        }
+
+        #[rstest]
+        #[case(&[Direction::North, Direction::South], 2, Coord::new(0, 0))]
+        #[case(&[Direction::North, Direction::South, Direction::East], 1,  Coord::new(1, 0))]
+        fn test_move_multiple(
+            #[case] directions: &[Direction],
+            #[case] steps: isize,
+            #[case] expected_coord: Coord,
+        ) {
+            let init = Coord::new(0, 0);
+            let coord = init.move_multiple(directions.iter(), steps);
+            assert_eq!(coord, expected_coord);
+        }
+    }
+
+    mod grid {
+
+        use super::*;
+        use rstest::{fixture, rstest};
+
+        type TestGrid = Grid<u8>;
+
+        #[fixture]
+        fn test_grid() -> TestGrid {
+            let mut grid = TestGrid::new(3, 3);
+            grid.set(&Coord::new(0, 0), 1);
+            grid.set(&Coord::new(1, 0), 2);
+            grid.set(&Coord::new(2, 0), 3);
+            grid.set(&Coord::new(0, 1), 4);
+            grid.set(&Coord::new(1, 1), 5);
+            grid.set(&Coord::new(2, 1), 6);
+            grid.set(&Coord::new(0, 2), 7);
+            grid.set(&Coord::new(1, 2), 8);
+            grid.set(&Coord::new(2, 2), 9);
+            assert_eq!(grid.data, vec![1, 2, 3, 4, 5, 6, 7, 8, 9]);
+            grid
+        }
+
+        #[rstest]
+        fn test_from_str(test_grid: TestGrid) {
+            let input = "123\n456\n789";
+
+            let grid = TestGrid::from_str(input, |_, _, c| c.to_digit(10).unwrap() as u8);
+
+            assert_eq!(grid.width, 3);
+            assert_eq!(grid.height, 3);
+            assert_eq!(grid.data, vec![1, 2, 3, 4, 5, 6, 7, 8, 9]);
+            assert_eq!(grid, test_grid);
+        }
+
+        #[rstest]
+        fn test_in_bounds(test_grid: TestGrid) {
+            assert!(test_grid.in_bounds(&Coord::new(0, 0)));
+            assert!(test_grid.in_bounds(&Coord::new(0, 2)));
+            assert!(test_grid.in_bounds(&Coord::new(2, 0)));
+            assert!(test_grid.in_bounds(&Coord::new(2, 2)));
+
+            assert!(!test_grid.in_bounds(&Coord::new(-1, 0)));
+            assert!(!test_grid.in_bounds(&Coord::new(0, -1)));
+            assert!(!test_grid.in_bounds(&Coord::new(-1, -1)));
+
+            assert!(!test_grid.in_bounds(&Coord::new(3, 0)));
+            assert!(!test_grid.in_bounds(&Coord::new(0, 3)));
+            assert!(!test_grid.in_bounds(&Coord::new(3, 3)));
+        }
+
+        #[rstest]
+        #[case(Direction::North, Coord::new(0, 0), None)]
+        #[case(Direction::South, Coord::new(0, 0), Some(Coord::new(0, 1)))]
+        #[case(Direction::East, Coord::new(0, 0), Some(Coord::new(1, 0)))]
+        #[case(Direction::West, Coord::new(0, 0), None)]
+        #[case(Direction::NorthEast, Coord::new(0, 0), None)]
+        #[case(Direction::SouthEast, Coord::new(0, 0), Some(Coord::new(1, 1)))]
+        fn test_step(
+            #[case] dir: Direction,
+            #[case] init: Coord,
+            #[case] expected: Option<Coord>,
+            test_grid: TestGrid,
+        ) {
+            assert_eq!(test_grid.step(&init, &dir), expected);
+        }
+
+        #[rstest]
+        fn test_walk(test_grid: TestGrid) {
+            let init = Coord::new(0, 0);
+
+            for (i, coord) in test_grid.walk(&init, &Direction::East).enumerate() {
+                assert_eq!(coord, Coord::new((i + 1) as isize, 0));
+            }
         }
     }
 }
