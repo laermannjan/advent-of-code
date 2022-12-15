@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Direction {
     North,
     NorthEast,
@@ -62,6 +62,48 @@ impl Coord {
         steps: isize,
     ) -> Self {
         directions.fold(self.clone(), |pos, dir| pos.move_once(&dir, steps))
+    }
+
+    pub fn get_direction(&self, target: &Coord) -> Option<Direction> {
+        if self == target {
+            return None;
+        }
+
+        let direction = if self.x == target.x {
+            if self.y < target.y {
+                Direction::South
+            } else {
+                Direction::North
+            }
+        } else if self.y == target.y {
+            if self.x < target.x {
+                Direction::East
+            } else {
+                Direction::West
+            }
+        } else if self.y < target.y {
+            if self.x < target.x {
+                Direction::SouthEast
+            } else {
+                Direction::SouthWest
+            }
+        } else if self.x < target.x {
+            Direction::NorthEast
+        } else {
+            Direction::NorthWest
+        };
+
+        Some(direction)
+    }
+
+    /// Distance to target when only up, down, left, right movement is allowed
+    pub fn manhattan_distance(&self, target: &Coord) -> usize {
+        ((self.x - target.x).abs() + (self.y - target.y).abs()) as usize
+    }
+
+    /// Distance to target when diagonal movement is allowed
+    pub fn chebyshev_distance(&self, target: &Coord) -> usize {
+        (self.x - target.x).abs().max((self.y - target.y).abs()) as usize
     }
 }
 
@@ -293,6 +335,43 @@ mod test {
             let init = Coord::new(0, 0);
             let coord = init.move_multiple(directions.iter(), steps);
             assert_eq!(coord, expected_coord);
+        }
+
+        #[rstest]
+        #[case(Coord::new(0, -1), Some(Direction::North))]
+        #[case(Coord::new(0, 1), Some(Direction::South))]
+        #[case(Coord::new(1, 0), Some(Direction::East))]
+        #[case(Coord::new(-1, 0), Some(Direction::West))]
+        #[case(Coord::new(0, 0), None)]
+        #[case(Coord::new(1, 1), Some(Direction::SouthEast))]
+        #[case(Coord::new(-1, -1), Some(Direction::NorthWest))]
+        #[case(Coord::new(1, -1), Some(Direction::NorthEast))]
+        #[case(Coord::new(-1, 1), Some(Direction::SouthWest))]
+        fn test_get_direction(#[case] target: Coord, #[case] direction: Option<Direction>) {
+            let x = Coord::new(0, 0);
+            assert_eq!(x.get_direction(&target), direction);
+        }
+
+        #[rstest]
+        #[case(Coord::new(0, 0), 0)]
+        #[case(Coord::new(0, -1), 1)]
+        #[case(Coord::new(0, 1), 1)]
+        #[case(Coord::new(1, -1), 2)]
+        #[case(Coord::new(-4, 4), 8)]
+        fn test_manhattan_distance(#[case] target: Coord, #[case] distance: usize) {
+            let init = Coord::new(0, 0);
+            assert_eq!(init.manhattan_distance(&target), distance);
+        }
+
+        #[rstest]
+        #[case(Coord::new(0, 0), 0)]
+        #[case(Coord::new(0, -1), 1)]
+        #[case(Coord::new(0, 1), 1)]
+        #[case(Coord::new(1, -1), 1)]
+        #[case(Coord::new(-4, 4), 4)]
+        fn test_chebyshev_distance(#[case] target: Coord, #[case] distance: usize) {
+            let init = Coord::new(0, 0);
+            assert_eq!(init.chebyshev_distance(&target), distance);
         }
     }
 
