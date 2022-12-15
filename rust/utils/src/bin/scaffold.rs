@@ -167,14 +167,38 @@ fn create_day(year: u32, day: u8) -> Result<(), std::io::Error> {
     Ok(())
 }
 
+fn download_puzzle_input(year: u32, day: u8) -> Result<(), std::io::Error> {
+    let bin = format!("{}/../../download_input", env!("CARGO_MANIFEST_DIR"));
+    if !Command::new(bin)
+        .args(&[
+            "-y",
+            format!("{}", year).as_str(),
+            "-d",
+            format!("{}", day).as_str(),
+        ])
+        .status()?
+        .success()
+    {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            "Failed to download puzzle input",
+        ));
+    }
+
+    Ok(())
+}
+
 fn create_data(year: u32, day: u8) -> Result<(), std::io::Error> {
     let puzzle_input_path = get_puzzle_input_path(year, day);
 
     if std::path::Path::new(&puzzle_input_path).exists() {
         println!("Puzzle input file already exists => {}", puzzle_input_path);
     } else {
-        create_puzzle_input_dummy(year, day);
-        println!("Created puzzle input file => {}", puzzle_input_path);
+        if let Err(e) = download_puzzle_input(year, day) {
+            eprintln!("Failed to download puzzle input: {}", e);
+            create_puzzle_input_dummy(year, day);
+            println!("Created puzzle input file => {}", puzzle_input_path);
+        }
     }
 
     let test_input_path = get_test_input_path(year, day, 1);
