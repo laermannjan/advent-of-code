@@ -166,6 +166,13 @@ where
         }
     }
 
+    pub fn to_str(&self, formatter: fn(&T) -> String) -> String {
+        self.data
+            .chunks(self.width)
+            .map(|row| row.iter().map(formatter).collect::<String>())
+            .join("\n")
+    }
+
     pub fn in_bounds(&self, coord: &Coord) -> bool {
         0 <= coord.x
             && coord.x < self.width as isize
