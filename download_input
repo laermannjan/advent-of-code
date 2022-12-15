@@ -2,12 +2,13 @@
 
 this_year=$(date +%Y)
 this_day=$(date +%d)
+base_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 download_dir() {
     local year="$1"
     local day="$2"
     printf -v day "%02d" "$day"
-    echo "./data/$year/day$day"
+    echo "$base_dir/data/$year/day$day"
 }
 
 fname() {
