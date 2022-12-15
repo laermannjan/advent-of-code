@@ -40,17 +40,19 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let input = utils::get_test_input(YEAR, DAY);
+        let test_no = 1;
+        let input = utils::get_test_input(YEAR, DAY, test_no);
         let parsed_input = parse_input(&input);
-        let expected = utils::get_test_result(YEAR, DAY, 1).parse().unwrap();
+        let expected = utils::get_test_result(YEAR, DAY, 1, test_no).parse().unwrap();
         assert_eq!(part_one(parsed_input), Some(expected));
     }
 
     #[test]
     fn test_part_two() {
-        let input = utils::get_test_input(YEAR, DAY);
+        let test_no = 1;
+        let input = utils::get_test_input(YEAR, DAY, test_no);
         let parsed_input = parse_input(&input);
-        let expected = utils::get_test_result(YEAR, DAY, 2).parse().unwrap();
+        let expected = utils::get_test_result(YEAR, DAY, 2, test_no).parse().unwrap();
         assert_eq!(part_two(parsed_input), Some(expected));
     }
 }
@@ -175,7 +177,7 @@ fn create_data(year: u32, day: u8) -> Result<(), std::io::Error> {
         println!("Created puzzle input file => {}", puzzle_input_path);
     }
 
-    let test_input_path = get_test_input_path(year, day);
+    let test_input_path = get_test_input_path(year, day, 1);
     if std::path::Path::new(&test_input_path).exists() {
         println!("Test input file already exists => {}", test_input_path);
     } else {
@@ -184,11 +186,11 @@ fn create_data(year: u32, day: u8) -> Result<(), std::io::Error> {
     }
 
     for part in 1..=2 {
-        let test_result_path = get_test_result_path(year, day, part);
+        let test_result_path = get_test_result_path(year, day, part, 1);
         if std::path::Path::new(&test_result_path).exists() {
             println!("Test result file already exists => {}", test_result_path);
         } else {
-            create_test_result_dummy(year, day, part);
+            create_test_result_dummy(year, day, part, 1);
             println!("Created test result file => {}", test_result_path);
         }
     }

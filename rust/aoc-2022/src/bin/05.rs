@@ -79,17 +79,17 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let input = utils::get_test_input(2022, 5);
+        let input = utils::get_test_input(2022, 5, 1);
         let parsed_input = parse_input(&input);
-        let expected = utils::get_test_result(2022, 5, 1);
+        let expected = utils::get_test_result(2022, 5, 1, 1);
         assert_eq!(part_one(parsed_input), Some(expected));
     }
 
     #[test]
     fn test_part_two() {
-        let input = utils::get_test_input(2022, 5);
+        let input = utils::get_test_input(2022, 5, 1);
         let parsed_input = parse_input(&input);
-        let expected = utils::get_test_result(2022, 5, 2);
+        let expected = utils::get_test_result(2022, 5, 2, 1);
         assert_eq!(part_two(parsed_input), Some(expected));
     }
 }

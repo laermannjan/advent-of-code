@@ -98,12 +98,12 @@ pub fn get_puzzle_input(year: u32, day: u8) -> String {
     read_data_file(&get_puzzle_input_path(year, day))
 }
 
-pub fn get_test_input(year: u32, day: u8) -> String {
-    read_data_file(&get_test_input_path(year, day))
+pub fn get_test_input(year: u32, day: u8, test_no: u8) -> String {
+    read_data_file(&get_test_input_path(year, day, test_no))
 }
 
-pub fn get_test_result(year: u32, day: u8, part: u8) -> String {
-    let result = read_data_file(&get_test_result_path(year, day, part))
+pub fn get_test_result(year: u32, day: u8, part: u8, test_no: u8) -> String {
+    let result = read_data_file(&get_test_result_path(year, day, part, test_no))
         .trim()
         .to_string();
     if result.is_empty() {
@@ -125,17 +125,17 @@ pub fn create_puzzle_input_dummy(year: u32, day: u8) -> String {
     get_data_path(year, day, None, None, true)
 }
 
-pub fn get_test_input_path(year: u32, day: u8) -> String {
-    get_data_path(year, day, Some(1), None, false)
+pub fn get_test_input_path(year: u32, day: u8, test_no: u8) -> String {
+    get_data_path(year, day, Some(test_no), None, false)
 }
 pub fn create_test_input_dummy(year: u32, day: u8) -> String {
     get_data_path(year, day, Some(1), None, true)
 }
-pub fn get_test_result_path(year: u32, day: u8, part: u8) -> String {
-    get_data_path(year, day, Some(1), Some(part), false)
+pub fn get_test_result_path(year: u32, day: u8, part: u8, test_no: u8) -> String {
+    get_data_path(year, day, Some(test_no), Some(part), false)
 }
-pub fn create_test_result_dummy(year: u32, day: u8, part: u8) -> String {
-    get_data_path(year, day, Some(1), Some(part), true)
+pub fn create_test_result_dummy(year: u32, day: u8, part: u8, test_no: u8) -> String {
+    get_data_path(year, day, Some(test_no), Some(part), true)
 }
 
 fn get_data_path(
