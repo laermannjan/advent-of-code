@@ -145,7 +145,7 @@ where
         self.width
     }
 
-    pub fn from_str(input: &str, parser: fn(usize, usize, char) -> T) -> Self {
+    pub fn from_str(input: &str, parser: &mut dyn FnMut(usize, usize, char) -> T) -> Self {
         let data: Vec<T> = input
             .lines()
             .enumerate()
@@ -237,12 +237,12 @@ where
         &self,
         coord: &Coord,
         direction: &Direction,
-        predicate: impl Fn(&T) -> bool,
+        predicate: impl Fn(&T, &T) -> bool,
     ) -> Option<Coord> {
-        let mut new_coord = coord.clone();
-        if let Some(coord) = self.step(&new_coord, direction) {
-            new_coord = coord;
-            if predicate(self.get(&new_coord).unwrap()) {
+        if let Some(new_coord) = self.step(&coord, direction) {
+            let curr_cell = self.get(&coord).unwrap();
+            let next_cell = self.get(&new_coord).unwrap();
+            if predicate(curr_cell, next_cell) {
                 return Some(new_coord);
             }
         }
@@ -409,7 +409,7 @@ mod test {
         fn test_from_str(test_grid: TestGrid) {
             let input = "123\n456\n789";
 
-            let grid = TestGrid::from_str(input, |_, _, c| c.to_digit(10).unwrap() as u8);
+            let grid = TestGrid::from_str(input, &mut |_, _, c| c.to_digit(10).unwrap() as u8);
 
             assert_eq!(grid.width, 3);
             assert_eq!(grid.height, 3);

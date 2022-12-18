@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use utils::grid::{Coord, Direction, Grid};
+use utils::grid::{Direction, Grid};
 
 static DIRECTIONS: &[Direction] = &[
     Direction::North,
@@ -11,7 +11,7 @@ static DIRECTIONS: &[Direction] = &[
 type Input = Grid<u32>;
 
 pub fn parse_input(input: &str) -> Input {
-    Grid::from_str(input, |_, _, c| c.to_digit(10).unwrap())
+    Grid::from_str(input, &mut |_, _, c| c.to_digit(10).unwrap())
 }
 pub fn part_one(input: Input) -> Option<i32> {
     // let mut s = String::new();
