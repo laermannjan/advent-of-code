@@ -98,7 +98,6 @@ pub fn parse_input(input: &str) -> Input {
     let mut curr_id = root_id.clone();
 
     for line in lines {
-        println!("{:?}", line);
         match line {
             Line::Command(Command::Cd(path)) => match path.as_str() {
                 "/" => {
@@ -155,16 +154,14 @@ pub fn parse_input(input: &str) -> Input {
 }
 
 pub fn part_one(input: Input) -> Option<i32> {
-    println!("{:?}", input.get(&input.root_node_id().unwrap()));
-
     Some(
         input
             .traverse_pre_order(input.root_node_id().unwrap())
             .unwrap()
             .filter(|&n| n.children().len() > 0 && n.data().size < 100_000)
-            .inspect(|node| {
-                dbg!(node);
-            })
+            // .inspect(|node| {
+            //     dbg!(node);
+            // })
             .map(|node| node.data().size)
             .sum::<u32>() as i32,
     )
@@ -174,14 +171,12 @@ pub fn part_two(input: Input) -> Option<i32> {
     let total_space = 70_000_000;
     let needed_space = 30_000_000;
 
-    let available_space = dbg!(
-        total_space
-            - input
-                .get(input.root_node_id().unwrap())
-                .unwrap()
-                .data()
-                .size
-    );
+    let available_space = total_space
+        - input
+            .get(input.root_node_id().unwrap())
+            .unwrap()
+            .data()
+            .size;
     let min_freeup_space = needed_space - available_space;
 
     Some(
@@ -189,9 +184,9 @@ pub fn part_two(input: Input) -> Option<i32> {
             .traverse_pre_order(input.root_node_id().unwrap())
             .unwrap()
             .filter(|&n| n.children().len() > 0 && n.data().size >= min_freeup_space)
-            .inspect(|node| {
-                dbg!(node);
-            })
+            // .inspect(|node| {
+            //     dbg!(node);
+            // })
             .map(|node| node.data().size)
             .min()
             .unwrap() as i32,

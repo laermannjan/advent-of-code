@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 type Input = Vec<(String, String)>;
 
 pub fn parse_input(input: &str) -> Input {

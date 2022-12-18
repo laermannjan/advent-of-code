@@ -15,6 +15,7 @@ impl Rope {
         }
     }
 
+    #[allow(dead_code)]
     fn to_str(&self) -> String {
         let (max_x, max_y) = self.knots.iter().fold((0, 0), |acc, knot| {
             (knot.x.abs().max(acc.0), knot.y.abs().max(acc.1))
