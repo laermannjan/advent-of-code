@@ -1,6 +1,7 @@
 use std::process::Command;
 
 pub mod grid;
+pub mod path_finding;
 
 pub const ANSI_ITALIC: &str = "\x1b[3m";
 pub const ANSI_BOLD: &str = "\x1b[1m";
