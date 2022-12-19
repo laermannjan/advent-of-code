@@ -45,6 +45,11 @@ impl Coord {
         Self { x, y }
     }
 
+    pub fn from_str(input: &str, parser: &mut dyn FnMut(&str) -> (isize, isize)) -> Self {
+        let (x, y) = parser(input);
+        Self::new(x, y)
+    }
+
     pub fn move_once(&self, direction: &Direction, steps: isize) -> Self {
         match direction {
             Direction::North => Self::new(self.x, self.y - steps),
