@@ -136,7 +136,7 @@ pub fn visualize(input: Input, row: Option<isize>) {
 pub fn part_one(input: Input) -> Option<usize> {
     let row = if cfg!(test) { 10 } else { 2_000_000 };
 
-    // visualize(input.clone());
+    // visualize(input.clone(), None);
 
     let free_locations = input
         .iter()
@@ -155,8 +155,30 @@ pub fn part_one(input: Input) -> Option<usize> {
     Some(free_locations.len())
 }
 
-pub fn part_two(input: Input) -> Option<i32> {
-    None
+pub fn part_two(input: Input) -> Option<usize> {
+    let lower = 0;
+    let upper = if cfg!(test) { 20 } else { 4_000_000 };
+
+    visualize(input.clone(), None);
+
+    let scanned_cells = input
+        .iter()
+        .map(|scan| scan.scanned_cells())
+        .flatten()
+        .unique();
+
+    let free_cells = (lower..=upper)
+        .cartesian_product(lower..=upper)
+        .map(|(x, y)| Coord { x, y })
+        .filter(|coord| !scanned_cells.clone().contains(&coord))
+        .inspect(|coord| {
+            dbg!(coord);
+        })
+        .collect_vec();
+    assert_eq!(free_cells.len(), 1);
+    free_cells
+        .first()
+        .map(|c| c.x as usize * 4_000_000 + c.y as usize)
 }
 
 utils::main!(2022, 15);
