@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use itertools::Itertools;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -64,7 +66,18 @@ impl Coord {
         directions.fold(self.clone(), |pos, dir| pos.move_once(&dir, steps))
     }
 
-    pub fn get_direction(&self, target: &Coord) -> Option<Direction> {
+    pub fn path_to(&self, other: &Self) -> Vec<Self> {
+        let mut pos = self.clone();
+        let mut path = vec![pos];
+        while pos != *other {
+            let dir = pos.direction_to(&other).unwrap();
+            pos = pos.move_once(&dir, 1);
+            path.push(pos.clone());
+        }
+        path
+    }
+
+    pub fn direction_to(&self, target: &Coord) -> Option<Direction> {
         if self == target {
             return None;
         }
@@ -104,6 +117,45 @@ impl Coord {
     /// Distance to target when diagonal movement is allowed
     pub fn chebyshev_distance(&self, target: &Coord) -> usize {
         (self.x - target.x).abs().max((self.y - target.y).abs()) as usize
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SparseGrid<T> {
+    cells: HashMap<Coord, T>,
+}
+
+impl<T> SparseGrid<T> {
+    pub fn get(&self, coord: &Coord) -> Option<&T> {
+        self.cells.get(coord)
+    }
+
+    pub fn get_mut(&mut self, coord: &Coord) -> Option<&mut T> {
+        self.cells.get_mut(coord)
+    }
+
+    pub fn insert(&mut self, coord: Coord, value: T) {
+        self.cells.insert(coord, value);
+    }
+
+    pub fn remove(&mut self, coord: &Coord) -> Option<T> {
+        self.cells.remove(coord)
+    }
+
+    pub fn contains(&self, coord: &Coord) -> bool {
+        self.cells.contains_key(coord)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&Coord, &T)> {
+        self.cells.iter()
+    }
+}
+
+impl<T> Default for SparseGrid<T> {
+    fn default() -> Self {
+        Self {
+            cells: HashMap::new(),
+        }
     }
 }
 
@@ -354,9 +406,9 @@ mod test {
         #[case(Coord::new(-1, -1), Some(Direction::NorthWest))]
         #[case(Coord::new(1, -1), Some(Direction::NorthEast))]
         #[case(Coord::new(-1, 1), Some(Direction::SouthWest))]
-        fn test_get_direction(#[case] target: Coord, #[case] direction: Option<Direction>) {
+        fn test_direction_to(#[case] target: Coord, #[case] direction: Option<Direction>) {
             let x = Coord::new(0, 0);
-            assert_eq!(x.get_direction(&target), direction);
+            assert_eq!(x.direction_to(&target), direction);
         }
 
         #[rstest]

@@ -56,7 +56,7 @@ impl Rope {
 
             for i in 1..self.knots.len() {
                 if self.knots[i].chebyshev_distance(&self.knots[i - 1]) > 1 {
-                    let direction = self.knots[i].get_direction(&self.knots[i - 1]).unwrap();
+                    let direction = self.knots[i].direction_to(&self.knots[i - 1]).unwrap();
                     self.knots[i] = self.knots[i].move_once(&direction, 1);
                     knot_positions[i].push(self.knots[i]);
                 }
