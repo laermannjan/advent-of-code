@@ -40,21 +40,44 @@ impl Scan {
         self.sensor.manhattan_distance(&self.beacon) as i32
     }
 
-    fn scanned_cells(&self) -> Vec<Coord> {
-        let sensor_range = self.sensor_reach() as isize;
-        (self.sensor.x - sensor_range..=self.sensor.x + sensor_range)
-            .cartesian_product(self.sensor.y - sensor_range..=self.sensor.y + sensor_range)
-            .map(|(x, y)| Coord::new(x, y))
-            .filter(|c| c.manhattan_distance(&self.sensor) as isize <= sensor_range)
-            .collect()
+    fn is_sensor_reachable(&self, coord: &Coord) -> bool {
+        self.sensor.manhattan_distance(coord) as i32 <= self.sensor_reach()
     }
 
-    fn beacon_free_cells(&self, row: Option<isize>) -> Vec<Coord> {
-        self.scanned_cells()
+    fn scan_shell(&self, dist: usize) -> impl Iterator<Item = Coord> {
+        let x = self.sensor.x as isize;
+        let y = self.sensor.y as isize;
+
+        let xmin = x - dist as isize;
+        let xmax = x + dist as isize;
+        let ymin = y - dist as isize;
+        let ymax = y + dist as isize;
+
+        let upper = (xmin..=xmax).zip((y..ymax).chain((y..=ymax).rev()));
+        let lower = (xmin + 1..xmax).zip((ymin..y).rev().chain((ymin..y).rev()));
+
+        upper
+            .chain(lower)
+            .map(|(x, y)| Coord::new(x, y))
             .into_iter()
+    }
+
+    fn scanned_cells(&self, row: Option<isize>) -> impl Iterator<Item = Coord> + '_ {
+        (0..=self.sensor_reach())
+            .map(|dist| self.scan_shell(dist as usize))
+            .flatten()
+            .filter(move |cell| row.map(|r| cell.y == r).unwrap_or(true))
+            .into_iter()
+    }
+
+    fn beacon_free_cells(&self, row: Option<isize>) -> impl Iterator<Item = Coord> + '_ {
+        self.scanned_cells(row)
+            .into_iter()
+            .inspect(|cell| {
+                // dbg!(cell);
+            })
             .filter(|cell| *cell != self.beacon)
-            .filter(|cell| row.map(|r| cell.y == r).unwrap_or(true))
-            .collect_vec()
+            .into_iter()
     }
 
     fn parse_coord(input: &str) -> IResult<&str, (i32, i32)> {
@@ -134,6 +157,7 @@ pub fn visualize(input: Input, row: Option<isize>) {
     }
 }
 pub fn part_one(input: Input) -> Option<usize> {
+    return None;
     let row = if cfg!(test) { 10 } else { 2_000_000 };
 
     // visualize(input.clone(), None);
@@ -147,6 +171,15 @@ pub fn part_one(input: Input) -> Option<usize> {
             let upper = scan.sensor.y + reach as isize;
             (lower..=upper).contains(&row)
         })
+        // .inspect(|scan| {
+        //     println!("Sensor at {:?}", scan.sensor);
+        //     println!("Beacon at {:?}", scan.beacon);
+        //     println!("Sensor range: {}", scan.sensor_reach());
+        //     println!(
+        //         "Free locations: {:?}",
+        //         scan.beacon_free_cells(Some(row as isize)).collect_vec()
+        //     );
+        // })
         .map(|s| s.beacon_free_cells(Some(row as isize)))
         .flatten()
         .unique()
@@ -155,30 +188,36 @@ pub fn part_one(input: Input) -> Option<usize> {
     Some(free_locations.len())
 }
 
-pub fn part_two(input: Input) -> Option<usize> {
-    let lower = 0;
-    let upper = if cfg!(test) { 20 } else { 4_000_000 };
+pub fn part_two(input: Input) -> Option<isize> {
+    println!("{:?}", input.len());
+    let min_coord = 0;
+    let max_coord = if cfg!(test) { 20 } else { 4_000_000 };
+    let coord_range = min_coord..=max_coord;
 
-    visualize(input.clone(), None);
+    // visualize(input.clone(), None);
 
-    let scanned_cells = input
+    // let scanned_cells = input
+    //     .iter()
+    //     .map(|scan| scan.scanned_cells(None))
+    //     .flatten()
+    //     .unique()
+    //     .collect_vec();
+
+    let potential_distress_cell = input
         .iter()
-        .map(|scan| scan.scanned_cells())
-        .flatten()
-        .unique();
-
-    let free_cells = (lower..=upper)
-        .cartesian_product(lower..=upper)
-        .map(|(x, y)| Coord { x, y })
-        .filter(|coord| !scanned_cells.clone().contains(&coord))
-        .inspect(|coord| {
-            dbg!(coord);
+        .map(|scan| {
+            println!("reach: {:?}", scan.sensor_reach());
+            scan.scan_shell((scan.sensor_reach() + 1) as usize)
         })
-        .collect_vec();
-    assert_eq!(free_cells.len(), 1);
-    free_cells
-        .first()
-        .map(|c| c.x as usize * 4_000_000 + c.y as usize)
+        .flatten()
+        .filter(|cell| coord_range.contains(&cell.x) && coord_range.contains(&cell.y))
+        .counts()
+        .into_iter()
+        .max_by_key(|(_, v)| *v)
+        .map(|(k, _)| k)
+        .unwrap();
+
+    Some(potential_distress_cell.x * 4_000_000 + potential_distress_cell.y)
 }
 
 utils::main!(2022, 15);
@@ -186,14 +225,10 @@ utils::main!(2022, 15);
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rstest::*;
 
-    #[test]
-    fn test_beacon_free_locs() {
-        let input = parse_input("Sensor at x=2, y=2: closest beacon is at x=4, y=2");
-
-        let mut free_locs = input[0].beacon_free_cells(None);
-
-        let mut expected = vec![
+    #[rstest]
+    #[case(None, vec![
             // up
             Coord { x: 2, y: 0 },
             // next level
@@ -212,12 +247,45 @@ mod tests {
             Coord { x: 3, y: 3 },
             // lowest
             Coord { x: 2, y: 4 },
-        ];
+        ])]
+    #[case(Some(1), vec![
+            Coord { x: 1, y: 1 },
+            Coord { x: 2, y: 1 },
+            Coord { x: 3, y: 1 },
+    ])]
+    #[case(Some(2), vec![
+            Coord { x: 0, y: 2 },
+            Coord { x: 1, y: 2 },
+            Coord { x: 2, y: 2 }, // sensor
+            Coord { x: 3, y: 2 },
+    ])]
+    fn test_beacon_free_locs(#[case] row: Option<isize>, #[case] mut expected: Vec<Coord>) {
+        let input = parse_input("Sensor at x=2, y=2: closest beacon is at x=4, y=2");
+
+        let mut free_locs = input[0].beacon_free_cells(row).collect_vec();
 
         free_locs.sort_by(|a, b| a.x.cmp(&b.x).then(a.y.cmp(&b.y)));
         expected.sort_by(|a, b| a.x.cmp(&b.x).then(a.y.cmp(&b.y)));
 
         assert_eq!(free_locs, expected);
+    }
+
+    #[rstest]
+    #[case(0, vec![(2, 3)])]
+    #[case(1, vec![(3, 3), (2, 4), (1, 3), (2, 2)])]
+    fn test_scan_shell(#[case] dist: usize, #[case] expected: Vec<(isize, isize)>) {
+        let input = parse_input("Sensor at x=2, y=3: closest beacon is at x=4, y=2");
+
+        let mut shell = input[0].scan_shell(dist).collect_vec();
+        let mut expected = expected
+            .into_iter()
+            .map(|(x, y)| Coord { x, y })
+            .collect_vec();
+
+        shell.sort_by(|a, b| a.x.cmp(&b.x).then(a.y.cmp(&b.y)));
+        expected.sort_by(|a, b| a.x.cmp(&b.x).then(a.y.cmp(&b.y)));
+
+        assert_eq!(shell, expected);
     }
 
     #[test]

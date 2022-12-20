@@ -43,6 +43,7 @@ dependencies = [
  "id_tree",
  "itertools 0.10.5",
  "nom",
+ "rstest",
  "utils",
 ]
 
