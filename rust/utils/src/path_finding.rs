@@ -34,7 +34,7 @@ static DIRECTIONS: [Direction; 4] = [
     Direction::West,
 ];
 
-pub fn shortest_path<T>(
+pub fn shortest_path_grid<T>(
     grid: &Grid<T>,
     starts: &[Coord],
     end: &Coord,

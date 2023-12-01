@@ -7,9 +7,9 @@ pub const ANSI_ITALIC: &str = "\x1b[3m";
 pub const ANSI_BOLD: &str = "\x1b[1m";
 pub const ANSI_RESET: &str = "\x1b[0m";
 
-pub fn timed_func<I: Clone, R>(func: impl Fn(I) -> R, input: I) -> (R, String) {
+pub fn timed_func<I, R>(func: impl Fn(I) -> R, input: I) -> (R, String) {
     let start = std::time::Instant::now();
-    let result = func(input.clone());
+    let result = func(input);
     let duration = start.elapsed();
 
     let formatted_duration = format!("{} µs", duration.as_micros());
@@ -63,11 +63,10 @@ macro_rules! main {
                 utils::ANSI_RESET
             );
             let input = utils::get_puzzle_input($year, $day);
-            let parsed_input = utils::parse!(parse_input, &input);
             print!(" 🧩 ");
-            utils::solve!("a", part_one, parsed_input.clone());
+            utils::solve!("a", part_one, utils::parse!(parse_input, &input));
             print!(" 🧩 ");
-            utils::solve!("b", part_two, parsed_input.clone());
+            utils::solve!("b", part_two, utils::parse!(parse_input, &input));
         }
     };
 }

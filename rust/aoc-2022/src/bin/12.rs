@@ -1,6 +1,6 @@
 use utils::grid::Coord;
 use utils::grid::Grid;
-use utils::path_finding::shortest_path;
+use utils::path_finding::shortest_path_grid;
 
 type Input = (Grid<Square>, Coord, Coord);
 
@@ -70,7 +70,7 @@ pub fn parse_input(input: &str) -> Input {
 }
 pub fn part_one(input: Input) -> Option<usize> {
     let (grid, start, end) = input;
-    shortest_path(
+    shortest_path_grid(
         &grid,
         &vec![start],
         &end,
@@ -91,7 +91,7 @@ pub fn part_two(input: Input) -> Option<usize> {
         .filter(|c| [Square::Start, Square::Height(0)].contains(grid.get(&c).unwrap()))
         .collect();
 
-    shortest_path(
+    shortest_path_grid(
         &grid,
         &starts,
         &end,
