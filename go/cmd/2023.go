@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"github.com/laermannjan/advent-of-code/go/aoc-2023/day01"
+	"github.com/laermannjan/advent-of-code/go/aoc-2023/day02"
 	"github.com/spf13/cobra"
 )
 
@@ -23,10 +24,6 @@ func makeDayCommand(day string, aCmd *cobra.Command, bCmd *cobra.Command) *cobra
 			bCmd.Run(bCmd, []string{})
 		},
 	}
-	aCmd.Flags().Bool("example", false, "Solve the example input")
-	bCmd.Flags().Bool("example", false, "Solve the example input")
-	// dayCmd.PersistentFlags().Bool("example", false, "Solve the example input")
-
 	dayCmd.AddCommand(aCmd)
 	dayCmd.AddCommand(bCmd)
 	return dayCmd
@@ -35,4 +32,5 @@ func makeDayCommand(day string, aCmd *cobra.Command, bCmd *cobra.Command) *cobra
 func init() {
 	solveCmd.AddCommand(year2023Cmd)
 	year2023Cmd.AddCommand(makeDayCommand("1", day01.ACmd(), day01.BCmd()))
+	year2023Cmd.AddCommand(makeDayCommand("2", day02.ACmd(), day02.BCmd()))
 }

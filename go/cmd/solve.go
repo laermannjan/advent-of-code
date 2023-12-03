@@ -7,11 +7,14 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var solveCmd = &cobra.Command{
-	Use:   "solve",
-	Short: "Solve an AOC problem",
-	Long:  "Solve an Advent of Code problem for a specific year, day and part. Either solves the example or the actual input",
-}
+var (
+	solveCmd = &cobra.Command{
+		Use:   "solve",
+		Short: "Solve an AOC problem",
+		Long:  "Solve an Advent of Code problem for a specific year, day and part. Either solves the example or the actual input",
+	}
+	Example bool
+)
 
 func printFlags(cmd *cobra.Command) {
 	fmt.Println("Local Flags:")
@@ -28,6 +31,6 @@ func printFlagSet(flagSet *pflag.FlagSet) {
 }
 
 func init() {
-	solveCmd.PersistentFlags().Bool("example", false, "Solve the example input")
+	rootCmd.PersistentFlags().BoolVar(&Example, "example", false, "use example input")
 	rootCmd.AddCommand(solveCmd)
 }
