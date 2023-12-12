@@ -89,5 +89,32 @@ func partA(input utils.Input) int {
 }
 
 func partB(input utils.Input) int {
-	return 0
+	card_count := map[int]int{}
+
+	for line := range input.Lines() {
+		schema := strings.Split(line, ":")
+		card := utils.Atoi(strings.Fields(schema[0])[1])
+		numbers := strings.Split(schema[1], "|")
+		winners := strings.Fields(numbers[0])
+		chosen := strings.Fields(numbers[1])
+
+		card_count[card] += 1
+		log.Println("Card:", card, winners, chosen, "copies:", card_count[card])
+
+		matches := 0
+		for _, n := range chosen {
+			if slices.Contains(winners, n) {
+				matches += 1
+				card_count[card+matches] += card_count[card]
+			}
+		}
+
+	}
+
+	total_cards := 0
+	for _, counts := range card_count {
+		total_cards += counts
+	}
+
+	return total_cards
 }
