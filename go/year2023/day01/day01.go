@@ -3,6 +3,7 @@ package day01
 import (
 	"fmt"
 	"log"
+	"reflect"
 	"strconv"
 	"strings"
 	"unicode"
@@ -11,12 +12,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func BCmd() *cobra.Command {
-	part := "b"
+func ACmd() *cobra.Command {
+	part := "a"
 	return &cobra.Command{
 		Use:   part,
 		Short: "Part " + part,
 		Run: func(cmd *cobra.Command, _ []string) {
+			type PkgMark struct{}
+			year, day := utils.GetYearDay(reflect.TypeOf(PkgMark{}).PkgPath())
+
 			solveExample, err := cmd.Flags().GetBool("example")
 			if err != nil {
 				log.Fatal(err)
@@ -24,14 +28,68 @@ func BCmd() *cobra.Command {
 
 			var input utils.Input
 			if solveExample {
-				input = utils.FromExampleFile(2023, 1, part)
+				input = utils.FromExampleFile(year, day, part)
 			} else {
-				input = utils.FromInputFile(2023, 1)
+				input = utils.FromInputFile(year, day)
+			}
+
+			fmt.Printf("Answer: %d\n", partA(input))
+		},
+	}
+}
+
+func BCmd() *cobra.Command {
+	part := "b"
+	return &cobra.Command{
+		Use:   part,
+		Short: "Part " + part,
+		Run: func(cmd *cobra.Command, _ []string) {
+			type PkgMark struct{}
+			year, day := utils.GetYearDay(reflect.TypeOf(PkgMark{}).PkgPath())
+
+			solveExample, err := cmd.Flags().GetBool("example")
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			var input utils.Input
+			if solveExample {
+				input = utils.FromExampleFile(year, day, part)
+			} else {
+				input = utils.FromInputFile(year, day)
 			}
 
 			fmt.Printf("Answer: %d\n", partB(input))
 		},
 	}
+}
+
+func partA(input utils.Input) int {
+	sum := 0
+	for line := range input.Lines() {
+		runes := []rune(line)
+
+		var v int
+		for i := 0; i < len(runes); i++ {
+			if unicode.IsDigit(runes[i]) {
+				vv, _ := strconv.Atoi(string(runes[i]))
+				v += vv * 10
+				break
+			}
+		}
+
+		for i := len(runes) - 1; i >= 0; i-- {
+			if unicode.IsDigit(runes[i]) {
+				vv, _ := strconv.Atoi(string(runes[i]))
+				v += vv
+				break
+			}
+		}
+
+		// log.Println(v)
+		sum += v
+	}
+	return sum
 }
 
 func partB(input utils.Input) int {

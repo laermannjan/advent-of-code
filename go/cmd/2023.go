@@ -4,9 +4,9 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"github.com/laermannjan/advent-of-code/go/aoc-2023/day01"
-	"github.com/laermannjan/advent-of-code/go/aoc-2023/day02"
-	"github.com/laermannjan/advent-of-code/go/aoc-2023/day03"
+	"github.com/laermannjan/advent-of-code/go/year2023/day01"
+	"github.com/laermannjan/advent-of-code/go/year2023/day02"
+	"github.com/laermannjan/advent-of-code/go/year2023/day03"
 	"github.com/spf13/cobra"
 )
 
