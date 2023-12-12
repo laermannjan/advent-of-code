@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Input interface {
 	Lines() <-chan string
 	LineSlice() []string
-	Paragraphs() <-chan string
-	ParagraphSlice() []string
+	Sections() <-chan string
+	SectionSlice() []string
 }
 
 type FileInput struct {
@@ -46,35 +47,39 @@ func (fi *FileInput) LineSlice() []string {
 	return line_slice
 }
 
-func (fi *FileInput) Paragraphs() <-chan string {
+func (fi *FileInput) Sections() <-chan string {
 	file, err := os.Open(fi.filePath)
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	ch := make(chan string)
 
 	go func() {
+		// defer file.Close()  // TODO: should I do this, or not?
 		defer close(ch)
-		var paragraph string
+		var section string
 		for scanner.Scan() {
-			if scanner.Text() == "" {
-				ch <- paragraph
-				paragraph = ""
+			line := scanner.Text()
+			if line == "" { // match empty line
+				ch <- strings.TrimSpace(section)
+				section = ""
 			} else {
-				paragraph += scanner.Text() + "\n"
+				section += line + "\n"
 			}
+		}
+		if len(section) > 0 {
+			ch <- strings.TrimSpace(section)
 		}
 	}()
 
 	return ch
 }
 
-func (fi *FileInput) ParagraphSlice() []string {
+func (fi *FileInput) SectionSlice() []string {
 	para_slice := []string{}
-	for para := range fi.Paragraphs() {
+	for para := range fi.Sections() {
 		para_slice = append(para_slice, para)
 	}
 	return para_slice
