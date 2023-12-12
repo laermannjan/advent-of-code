@@ -9,7 +9,9 @@ import (
 
 type Input interface {
 	Lines() <-chan string
+	LineSlice() []string
 	Paragraphs() <-chan string
+	ParagraphSlice() []string
 }
 
 type FileInput struct {
@@ -36,6 +38,14 @@ func (fi *FileInput) Lines() <-chan string {
 	return ch
 }
 
+func (fi *FileInput) LineSlice() []string {
+	line_slice := []string{}
+	for line := range fi.Lines() {
+		line_slice = append(line_slice, line)
+	}
+	return line_slice
+}
+
 func (fi *FileInput) Paragraphs() <-chan string {
 	file, err := os.Open(fi.filePath)
 	if err != nil {
@@ -60,6 +70,14 @@ func (fi *FileInput) Paragraphs() <-chan string {
 	}()
 
 	return ch
+}
+
+func (fi *FileInput) ParagraphSlice() []string {
+	para_slice := []string{}
+	for para := range fi.Paragraphs() {
+		para_slice = append(para_slice, para)
+	}
+	return para_slice
 }
 
 func FromInputFile(year int, day int) Input {
