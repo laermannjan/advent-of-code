@@ -7,6 +7,7 @@ import (
 	"github.com/laermannjan/advent-of-code/go/year2023/day01"
 	"github.com/laermannjan/advent-of-code/go/year2023/day02"
 	"github.com/laermannjan/advent-of-code/go/year2023/day03"
+	"github.com/laermannjan/advent-of-code/go/year2023/day04"
 	"github.com/spf13/cobra"
 )
 
@@ -35,4 +36,5 @@ func init() {
 	year2023Cmd.AddCommand(makeDayCommand("1", day01.ACmd(), day01.BCmd()))
 	year2023Cmd.AddCommand(makeDayCommand("2", day02.ACmd(), day02.BCmd()))
 	year2023Cmd.AddCommand(makeDayCommand("3", day03.ACmd(), day03.BCmd()))
+	year2023Cmd.AddCommand(makeDayCommand("4", day04.ACmd(), day04.BCmd()))
 }
