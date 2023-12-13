@@ -31,5 +31,6 @@ func Execute() {
 }
 
 func init() {
+	log.SetFlags(0)
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "enable debug logging")
 }

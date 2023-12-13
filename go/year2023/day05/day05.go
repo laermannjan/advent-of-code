@@ -127,13 +127,17 @@ func partA(input utils.Input) int {
 	}
 
 	for _, m := range maps {
+		log.Println("\n\nMap:", m)
 		for i, seed := range seeds {
+			log.Println("\nseed:", seed)
 			for _, rule := range m.rules {
-				log.Println("checking rule:", rule)
+				log.Print("rule:", rule)
 				if rule.start <= seed && seed < rule.end {
 					seeds[i] += rule.offset
 					log.Println("converting:", seed, "->", seeds[i])
 					break
+				} else {
+					log.Println("no overlap")
 				}
 			}
 		}
@@ -244,16 +248,14 @@ func partB(input utils.Input) int {
 	}
 
 	for _, m := range maps {
-		log.Println()
-		log.Println()
-		log.Println("Map:", m)
+		log.Println("\n\nMap:", m)
 		log.Println("seeds:", seeds)
 		converted_seeds := []Interval{}
 		for _, seed := range seeds {
 			log.Println()
-			log.Println("examining seed:", seed)
+			log.Println("seed:", seed)
 			for _, rule := range m.rules {
-				log.Println("checking rule", rule)
+				log.Println("\nrule", rule)
 
 				if seed.start > rule.end || rule.start > seed.end {
 					log.Println("no overlap")
@@ -261,9 +263,8 @@ func partB(input utils.Input) int {
 				}
 
 				if seed.start < rule.start {
-					log.Println("seed.start < rule.start")
 					passthrough_seed_part := Interval{start: seed.start, end: rule.start}
-					log.Println("passthrough:", passthrough_seed_part)
+					log.Println("seed.start < rule.start; passthrough:", passthrough_seed_part)
 
 					converted_seeds = append(converted_seeds, passthrough_seed_part)
 					seed.start = rule.start
@@ -271,31 +272,30 @@ func partB(input utils.Input) int {
 				}
 
 				if seed.end <= rule.end {
-					log.Println("seed fits into rule interval")
+					//seed fits into rule interval
 					converted_seed := seed.convert(rule.offset)
-					log.Println("converting", seed, "->", converted_seed)
+					log.Println("converting (->seed.end):", seed, "->", converted_seed)
 					converted_seeds = append(converted_seeds, converted_seed)
 					seed.start = seed.end
 					break
 				} else {
-					log.Println("seed overflows rule interval")
-
+					//seed overflows rule interval
 					seed_part := Interval{start: seed.start, end: rule.end}
 					converted_seed_part := seed_part.convert(rule.offset)
 					converted_seeds = append(converted_seeds, converted_seed_part)
-					log.Println("converting", seed_part, "->", converted_seed_part)
+					log.Println("converting (->rule.end):", seed_part, "->", converted_seed_part)
 
 					seed = Interval{start: rule.end, end: seed.end}
-					log.Println("reminaing seed", seed)
+					log.Println("reminaing seed:", seed)
 				}
 			}
 			if seed.start < seed.end {
-				log.Println("remaining seed", seed, "did not match any conversion rule, passing through")
+				log.Println("no rule matched; passthrough:", seed)
 				converted_seeds = append(converted_seeds, seed)
 			}
 		}
 
-		log.Println("converted seeds:", converted_seeds)
+		log.Println("\nconverted seeds:", converted_seeds)
 		slices.SortFunc(converted_seeds, func(a, b Interval) int { return cmp.Compare(a.start, b.start) })
 		log.Println("sorted seeds:", converted_seeds)
 
