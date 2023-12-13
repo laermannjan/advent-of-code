@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/laermannjan/advent-of-code/go/utils"
 	"github.com/spf13/cobra"
@@ -65,24 +66,15 @@ func BCmd() *cobra.Command {
 	}
 }
 
-type Range struct {
-	start  int
-	length int
-}
-
-func (r Range) String() string {
-	return fmt.Sprintf("[%d<-%d->%d]", r.start, r.length, r.start+r.length-1)
-}
-
 func partA_old(input utils.Input) int {
 	sections := input.SectionSlice()
 	seeds := strings.Fields(strings.Split(sections[0], ":")[1])
 	locations := []int{}
 
-	src_dest_maps := []map[Range]int{}
+	src_dest_maps := []map[Interval]int{}
 
 	for _, section := range sections[1:] {
-		src_dest_map := map[Range]int{}
+		src_dest_map := map[Interval]int{}
 		for _, mapping := range strings.Split(section, "\n")[1:] {
 
 			fields := strings.Fields(mapping)
@@ -90,7 +82,7 @@ func partA_old(input utils.Input) int {
 			source := utils.Atoi(fields[1])
 			length := utils.Atoi(fields[2])
 
-			src_dest_map[Range{source, source + length}] = dest - source
+			src_dest_map[Interval{source, source + length}] = dest - source
 		}
 		src_dest_maps = append(src_dest_maps, src_dest_map)
 	}
@@ -100,7 +92,7 @@ func partA_old(input utils.Input) int {
 		log.Println("seed:", n)
 		for _, cur_map := range src_dest_maps {
 			for cur_range, shift := range cur_map {
-				if cur_range.start <= n && n <= cur_range.start+cur_range.length {
+				if cur_range.start <= n && n <= cur_range.end {
 					n += shift
 					break
 				}
@@ -164,31 +156,42 @@ func partA(input utils.Input) int {
 	return min_loc
 }
 
-type Conversion struct {
-	Source      int
-	Destination int
-	Length      int
+type Interval struct {
+	start int
+	end   int
 }
 
-func (c Conversion) String() string {
-	source := Range{start: c.Source, length: c.Length}
-	dest := Range{start: c.Destination, length: c.Length}
-	return fmt.Sprintf("%v >> %v", source, dest)
+func (i Interval) convert(offset int) Interval {
+	return Interval{start: i.start + offset, end: i.end + offset}
+
+}
+
+func (r Interval) String() string {
+	return fmt.Sprintf("[%d,%d)", r.start, r.end)
+}
+
+type Rule struct {
+	start  int
+	end    int
+	offset int
+}
+
+func (c Rule) String() string {
+	sign := ""
+	if c.offset > 0 {
+		sign = "+"
+	}
+	return fmt.Sprintf("[%d,%d) -> %s%v", c.start, c.end, sign, c.offset)
 }
 
 type Map struct {
-	From        string
-	To          string
-	Conversions []Conversion
+	from  string
+	to    string
+	rules []Rule
 }
 
 func (m Map) String() string {
-	parts := []string{fmt.Sprintf("%s -> %s", m.From, m.To)}
-	for _, conv := range m.Conversions {
-		parts = append(parts, conv.String())
-	}
-
-	return strings.Join(parts, "\n")
+	return fmt.Sprintf("%s -> %s", m.from, m.to)
 }
 
 func parseSeeds(str string) (seeds []int) {
@@ -202,7 +205,7 @@ func parseSeeds(str string) (seeds []int) {
 	return
 }
 
-func parseSeedRanges(str string) (seeds []Range) {
+func parseSeedRanges(str string) (seeds []Interval) {
 	str, found := strings.CutPrefix(str, "seeds:")
 	if !found {
 		log.Fatal("could not parse seed ranges")
@@ -212,36 +215,40 @@ func parseSeedRanges(str string) (seeds []Range) {
 	for i := 0; i < len(fields); i += 2 {
 		start := utils.Atoi(fields[i])
 		length := utils.Atoi(fields[i+1])
-		seeds = append(seeds, Range{start: start, length: length})
+		seeds = append(seeds, Interval{start: start, end: start + length})
 	}
-	slices.SortFunc(seeds, func(a, b Range) int { return cmp.Compare(a.start, b.start) })
+	slices.SortFunc(seeds, func(a, b Interval) int { return cmp.Compare(a.start, b.start) })
 	return
 }
 
 func parseMap(s string) (m Map) {
 	lines := strings.Split(s, "\n")
 	fields := strings.Split(strings.Split(lines[0], " ")[0], "-to-")
-	m.From = fields[0]
-	m.To = fields[1]
+	m.from = fields[0]
+	m.to = fields[1]
 	for _, conv := range lines[1:] {
 		fields := strings.Fields(conv)
-		m.Conversions = append(m.Conversions, Conversion{
-			Destination: utils.Atoi(fields[0]),
-			Source:      utils.Atoi(fields[1]),
-			Length:      utils.Atoi(fields[2]),
+
+		dest := utils.Atoi(fields[0])
+		source := utils.Atoi(fields[1])
+		length := utils.Atoi(fields[2])
+
+		m.rules = append(m.rules, Rule{
+			start:  source,
+			end:    source + length,
+			offset: dest - source,
 		})
 	}
-	log.Println("before", m.Conversions)
-	slices.SortFunc(m.Conversions, func(a, b Conversion) int { return cmp.Compare(a.Source, b.Source) })
-	log.Println("after", m.Conversions)
-
+	slices.SortFunc(m.rules, func(a, b Rule) int { return cmp.Compare(a.start, b.start) })
 	return
 }
 
 func partB(input utils.Input) int {
+	start := time.Now()
+
 	sections := input.SectionSlice()
 	seeds := parseSeedRanges(sections[0])
-	log.Println("seeds:", seeds)
+	log.Println("Initial seeds:", seeds)
 
 	maps := []Map{}
 	for _, section := range sections[1:] {
@@ -250,68 +257,66 @@ func partB(input utils.Input) int {
 
 	for _, m := range maps {
 		log.Println()
-		log.Println("Map from", m.From, "to", m.To)
-		log.Println("Starting seeds:", seeds)
-		converted_seeds := []Range{}
+		log.Println()
+		log.Println("Map:", m)
+		log.Println("seeds:", seeds)
+		converted_seeds := []Interval{}
 		for _, seed := range seeds {
-			log.Println("Examining new seed range:", seed)
-			for _, conv := range m.Conversions {
-				log.Println("checking conv rule", conv)
-				if seed.start <= conv.Source+conv.Length && conv.Source < seed.start+seed.length {
-					//overlap
-					log.Printf("Overlap found between seed: %v conv: %v", seed, conv)
-					offset := conv.Destination - conv.Source
+			log.Println()
+			log.Println("examining seed:", seed)
+			for _, rule := range m.rules {
+				log.Println("checking rule", rule)
 
-					if seed.start < conv.Source {
-						// pass through, as there is no conversion rule for this range
-						passthrough_part := Range{start: seed.start, length: conv.Source - seed.start}
-						log.Println("passthrough part:", passthrough_part)
+				if seed.start > rule.end || rule.start > seed.end {
+					log.Println("no overlap")
+					continue
+				}
 
-						converted_seeds = append(converted_seeds, passthrough_part)
-						log.Println("setting seed.start", seed.start, "to", conv.Source)
-						seed.start = conv.Source
-					}
+				if seed.start < rule.start {
+					log.Println("seed.start < rule.start")
+					passthrough_seed_part := Interval{start: seed.start, end: rule.start}
+					log.Println("passthrough:", passthrough_seed_part)
 
-					if seed.start+seed.length <= conv.Source+conv.Length {
-						// remaining seed is completely within conversion range, convert entire seed
-						converted_seed := Range{start: seed.start + offset, length: seed.length}
-						log.Println("seed remainder entirely in conversion rule:", seed, "converted to", converted_seed)
-						converted_seeds = append(converted_seeds, converted_seed)
-						seed = Range{start: seed.start + seed.length, length: 0}
-						break
-					} else {
-						// part of remaining seed is inside this convertion, but part outside and may be converted by a following converision
-						log.Println("seed overflows conversion rule, adding covered range")
+					converted_seeds = append(converted_seeds, passthrough_seed_part)
+					seed.start = rule.start
+					log.Println("remaining seed:", seed)
+				}
 
-						// part inside this converison rule
-						length_inside := conv.Source + conv.Length - seed.start
-						converted_seed_part := Range{start: seed.start + offset, length: length_inside}
-						converted_seeds = append(converted_seeds, converted_seed_part)
-						log.Println("converting", Range{start: seed.start, length: length_inside}, "to", converted_seed_part)
+				if seed.end <= rule.end {
+					log.Println("seed fits into rule interval")
+					converted_seed := seed.convert(rule.offset)
+					log.Println("converting", seed, "->", converted_seed)
+					converted_seeds = append(converted_seeds, converted_seed)
+					seed.start = seed.end
+					break
+				} else {
+					log.Println("seed overflows rule interval")
 
-						// remainder not covered by this conversion rule
-						seed = Range{start: conv.Source + conv.Length, length: seed.start + seed.length - (conv.Source + conv.Length)}
-						log.Println("reminaing seed", seed)
-					}
+					seed_part := Interval{start: seed.start, end: rule.end}
+					converted_seed_part := seed_part.convert(rule.offset)
+					converted_seeds = append(converted_seeds, converted_seed_part)
+					log.Println("converting", seed_part, "->", converted_seed_part)
+
+					seed = Interval{start: rule.end, end: seed.end}
+					log.Println("reminaing seed", seed)
 				}
 			}
-			if seed.length > 0 {
-				log.Println("seed", seed, "did not match any conversion rule, passing through")
+			if seed.start < seed.end {
+				log.Println("remaining seed", seed, "did not match any conversion rule, passing through")
 				converted_seeds = append(converted_seeds, seed)
 			}
 		}
 
-		log.Println("Converted seeds:", converted_seeds)
-		slices.SortFunc(converted_seeds, func(a, b Range) int { return cmp.Compare(a.start, b.start) })
-		log.Println("Sorted seeds:", converted_seeds)
+		log.Println("converted seeds:", converted_seeds)
+		slices.SortFunc(converted_seeds, func(a, b Interval) int { return cmp.Compare(a.start, b.start) })
+		log.Println("sorted seeds:", converted_seeds)
 
-		merged_seeds := []Range{}
+		merged_seeds := []Interval{}
 		current := converted_seeds[0]
 		for _, next := range converted_seeds[1:] {
-			if current.start+current.length >= next.start {
+			if current.end >= next.start {
 				// overlapping or adjacent
-				end := max(current.start+current.length, next.start+next.length)
-				current.length = end - current.start
+				current.end = max(current.end, next.end)
 			} else {
 				merged_seeds = append(merged_seeds, current)
 				current = next
@@ -319,9 +324,10 @@ func partB(input utils.Input) int {
 
 		}
 		merged_seeds = append(merged_seeds, current)
-		log.Println("Merged seeds:", merged_seeds)
+		log.Println("merged seeds:", merged_seeds)
 
 		seeds = merged_seeds
 	}
+	fmt.Println("took:", time.Since(start))
 	return seeds[0].start
 }
