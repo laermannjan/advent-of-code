@@ -116,44 +116,32 @@ func partA_old(input utils.Input) int {
 }
 
 func partA(input utils.Input) int {
+	start := time.Now()
 	sections := input.SectionSlice()
-	seeds_str := strings.Fields(strings.Split(sections[0], ":")[1])
-	seeds := []int{}
-	for _, seed := range seeds_str {
-		seeds = append(seeds, utils.Atoi(seed))
+	seeds := parseSeeds(sections[0])
+	log.Println("Initial seeds:", seeds)
+
+	maps := []Map{}
+	for _, section := range sections[1:] {
+		maps = append(maps, parseMap(section))
 	}
 
-	log.Printf("%-30s: %v", "initial", seeds)
-	for _, section := range sections[1:] {
-		mapped := map[int]bool{}
-
-		name, _, _ := strings.Cut(section, ":")
-		for _, m := range strings.Split(section, "\n")[1:] {
-
-			fields := strings.Fields(m)
-			dest := utils.Atoi(fields[0])
-			source := utils.Atoi(fields[1])
-			length := utils.Atoi(fields[2])
-			log.Println(dest, source, length)
-
-			for i, seed := range seeds {
-				if !mapped[i] && source <= seed && seed < source+length {
-					mapped[i] = true
-					seeds[i] += dest - source
-					log.Printf("seed=%v [%v, %v) -> %v", seed, source, source+length, seeds[i])
+	for _, m := range maps {
+		for i, seed := range seeds {
+			for _, rule := range m.rules {
+				log.Println("checking rule:", rule)
+				if rule.start <= seed && seed < rule.end {
+					seeds[i] += rule.offset
+					log.Println("converting:", seed, "->", seeds[i])
+					break
 				}
 			}
+		}
 
-		}
-		log.Printf("%-30s: %v", name, seeds)
 	}
-	min_loc := math.MaxInt
-	for _, seed := range seeds {
-		if seed < min_loc {
-			min_loc = seed
-		}
-	}
-	return min_loc
+	fmt.Println("took:", time.Since(start))
+
+	return slices.Min(seeds)
 }
 
 type Interval struct {
