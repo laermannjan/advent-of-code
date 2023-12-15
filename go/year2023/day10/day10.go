@@ -1,9 +1,11 @@
 package day10
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
+	"slices"
 
 	"github.com/laermannjan/advent-of-code/go/utils"
 	"github.com/spf13/cobra"
@@ -61,14 +63,7 @@ func BCmd() *cobra.Command {
 	}
 }
 
-type node struct {
-	symbol rune
-	row    int
-	col    int
-	dist   int
-}
-
-var options = map[rune][2]string{
+var options = map[byte][2]string{
 	'L': {"north", "east"},
 	'7': {"west", "south"},
 	'J': {"north", "west"},
@@ -84,94 +79,98 @@ var inverse = map[string]string{
 	"east":  "west",
 }
 
-func walk(pipe rune, coming_from string) string {
-	opts := options[pipe]
-	if opts[0] == coming_from {
-		return opts[1]
-	} else {
-		return opts[0]
+var enters = map[string][]byte{
+	"north": {'|', '7', 'F'},
+	"south": {'|', 'J', 'L'},
+	"west":  {'-', 'L', 'F'},
+	"east":  {'-', 'J', '7'},
+}
+
+type position struct {
+	row int
+	col int
+}
+
+func (from position) move(maze []string, dir string) (to position, err error) {
+	to = from
+	switch dir {
+	case "north":
+		to.row -= 1
+		if to.row < 0 {
+			err = errors.New("already on north edge")
+		}
+	case "south":
+		to.row += 1
+		if to.row >= len(maze) {
+			err = errors.New("already on south edge")
+		}
+	case "west":
+		to.col -= 1
+		if to.col < 0 {
+			err = errors.New("already on west edge")
+		}
+	case "east":
+		to.col += 1
+		if to.col > len(maze[0]) {
+			err = errors.New("already on east edge")
+		}
 	}
+	return
+}
+
+func (p position) symbol(grid []string) (symbol byte) {
+	symbol = grid[p.row][p.col]
+	return
 }
 
 func partA(input utils.Input) int {
-	maze := [][]node{}
-	var s *node
-	for i, line := range input.LineSlice() {
-		row := []node{}
-		for j, r := range line {
-			n := node{symbol: r, col: j, row: i}
-			row = append(row, n)
-			if s == nil && r == 'S' {
-				s = &n
-				log.Printf("s found: %#v", n)
+	maze := input.LineSlice()
+	var s position
+	for r := range maze {
+		for c, ch := range maze[r] {
+			if ch == 'S' {
+				s = position{row: r, col: c}
 			}
-
 		}
-		maze = append(maze, row)
 	}
 
-	cur_node := &*s
-
-	init_dirs := []string{}
-	for _, dir := range []string{"north", "south", "west", "east"} {
-		var pipe rune
-		switch dir {
-		case "north":
-			if 0 <= cur_node.row-1 {
-				pipe = maze[cur_node.row-1][cur_node.col].symbol
-			}
-		case "south":
-			if cur_node.row+1 < len(maze) {
-				pipe = maze[cur_node.row+1][cur_node.col].symbol
-			}
-		case "west":
-			if 0 <= cur_node.col-1 {
-				pipe = maze[cur_node.row][cur_node.col-1].symbol
-			}
-		case "east":
-			if cur_node.col-1 < len(maze[cur_node.row]) {
-				pipe = maze[cur_node.row][cur_node.col+1].symbol
+	loop := map[position]bool{s: true}
+	current := s
+	log.Println("starting:", current)
+	prev_move := ""
+	for {
+		if current == s {
+			for move, valid_symbols := range enters {
+				next, err := current.move(maze, move)
+				if err != nil {
+					continue
+				}
+				if slices.Contains(valid_symbols, next.symbol(maze)) {
+					current = next
+					prev_move = move
+					loop[current] = true
+					log.Println("move:", prev_move)
+					break
+				}
 			}
 		}
-		opts := options[pipe]
-		if opts[0] == inverse[dir] || opts[1] == inverse[dir] {
-			init_dirs = append(init_dirs, dir)
+
+		opts := options[current.symbol(maze)]
+		if inverse[opts[0]] == prev_move {
+			prev_move = opts[1]
+		} else {
+			prev_move = opts[0]
+
 		}
-	}
-	log.Println("init dirs:", init_dirs)
-
-	max_dist := 0
-	for _, init_dir := range init_dirs {
-		going_to := init_dir
-		log.Printf("at %+v (%v) - going to [init] %s", cur_node, string(cur_node.symbol), going_to)
-		dist := 0
-		max_dist = 0
-		for {
-			switch going_to {
-			case "north":
-				cur_node = &maze[cur_node.row-1][cur_node.col]
-			case "south":
-				cur_node = &maze[cur_node.row+1][cur_node.col]
-			case "west":
-				cur_node = &maze[cur_node.row][cur_node.col-1]
-			case "east":
-				cur_node = &maze[cur_node.row][cur_node.col+1]
-			}
-
-			if cur_node.symbol == 'S' {
-				break
-			}
-			dist++
-			// log.Println("dists", dist, cur_node.dist)
-			if cur_node.dist == 0 || cur_node.dist > dist {
-				cur_node.dist = dist
-			}
-			max_dist = max(cur_node.dist, max_dist)
-			going_to = walk(cur_node.symbol, inverse[going_to])
-			log.Printf("at %+v (%v) - going to %s", cur_node, string(cur_node.symbol), going_to)
+		log.Println("move:", prev_move)
+		current, _ = current.move(maze, prev_move)
+		loop[current] = true
+		if current == s {
+			break
 		}
 	}
-	return max_dist
+
+	return len(loop) / 2
 }
 
 func partB(input utils.Input) int {
