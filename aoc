@@ -1,0 +1,111 @@
+#!/bin/bash
+
+# Usage: ./aoc solve --lang=[language] --year=[year] --day=[day] [additional args]
+#        ./aoc scaffold --lang=[language] --year=[year] --day=[day] (also downloads input/puzzle if not present)
+#        ./aoc download --year=[year] --day=[day]
+
+pad_day() {
+    printf "%02d" $1
+}
+
+parse_args() {
+    for arg in "$@"
+    do
+        case $arg in
+            --lang=*)
+            LANGUAGE="${arg#*=}"
+            shift
+            ;;
+            --year=*)
+            YEAR="${arg#*=}"
+            shift
+            ;;
+            --day=*)
+            DAY="${arg#*=}"
+            shift
+            ;;
+            *)
+            OTHER_ARGS+=("$arg")
+            shift
+            ;;
+        esac
+    done
+}
+
+solve() {
+    parse_args "$@"
+    DAY=$(pad_day $DAY)
+
+    case $LANGUAGE in
+        go)
+            go run $(dirname "$0")/$YEAR/day$DAY/main.go "${OTHER_ARGS[@]}"
+            ;;
+        rust)
+            cargo run --manifest-path $(dirname "$0")/$YEAR/day$DAY/Cargo.toml "${OTHER_ARGS[@]}"
+            ;;
+        python)
+            python $(dirname "$0")/$YEAR/day$DAY/main.py "${OTHER_ARGS[@]}"
+            ;;
+        haskell)
+            runhaskell $(dirname "$0")/$YEAR/day$DAY/main.hs "${OTHER_ARGS[@]}"
+            ;;
+        *)
+            echo "Unsupported language"
+            exit 1
+            ;;
+    esac
+}
+
+download() {
+    parse_args "$@"
+    DIR="$(dirname "$0")/$YEAR/day$(pad_day $DAY)"
+    mkdir -p $DIR
+    aoc download --year=$YEAR --day=$DAY --input-file $DIR/input.txt --puzzle-file $DIR/puzzle.md
+
+}
+
+scaffold() {
+    parse_args "$@"
+    DIR=$(dirname "$0")/$YEAR/day$DAY
+    mkdir -p $DIR
+
+    case $LANGUAGE in
+        go)
+            cp ./template.go $DIR/main.go
+            ;;
+        rust)
+            cp ./template.rs $DIR/main.rs
+            ;;
+        python)
+            cp ./template.py $DIR/main.py
+            ;;
+        *)
+            echo "Unsupported language"
+            exit 1
+            ;;
+    esac
+    if [ ! -f $DIR/input.txt ]; then
+        download "$@"
+    fi
+    touch $DIR/example.txt
+
+}
+
+case $1 in
+    solve)
+        shift
+        solve "$@"
+        ;;
+    download)
+        shift
+        download "$@"
+        ;;
+    scaffold)
+        shift
+        scaffold "$@"
+        ;;
+    *)
+        echo "Invalid command. Use 'solve' or 'download'."
+        exit 1
+        ;;
+esac
