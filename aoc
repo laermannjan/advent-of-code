@@ -41,7 +41,7 @@ solve() {
             go run $(dirname "$0")/$YEAR/day$DAY/main.go "${OTHER_ARGS[@]}"
             ;;
         rust)
-            cargo run --manifest-path $(dirname "$0")/$YEAR/day$DAY/Cargo.toml "${OTHER_ARGS[@]}"
+            cargo run --bin "$YEAR-$DAY" -- "${OTHER_ARGS[@]}"
             ;;
         python)
             python $(dirname "$0")/$YEAR/day$DAY/main.py "${OTHER_ARGS[@]}"
@@ -66,7 +66,7 @@ download() {
 
 scaffold() {
     parse_args "$@"
-    DIR=$(dirname "$0")/$YEAR/day$DAY
+    DIR="$(dirname "$0")/$YEAR/day$(pad_day $DAY)"
     mkdir -p $DIR
 
     case $LANGUAGE in
@@ -75,6 +75,7 @@ scaffold() {
             ;;
         rust)
             cp ./template.rs $DIR/main.rs
+            printf "[[bin]]\nname=\"$YEAR-$(pad_day $DAY)\"\npath=\"$YEAR/day$(pad_day $DAY)/main.rs\"\n\n" >> $(dirname "$0")/Cargo.toml
             ;;
         python)
             cp ./template.py $DIR/main.py
