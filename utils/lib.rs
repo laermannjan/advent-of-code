@@ -2,12 +2,15 @@ use std::env;
 use std::{error::Error, path::Path, time::Instant};
 
 pub struct Day {
-    pub loc: Box<Path>,
-    pub part_one: fn(String) -> Option<i32>,
-    pub part_two: fn(String) -> Option<i32>,
+    pub loc: &'static str,
+    pub part_one: fn(&str) -> Option<i32>,
+    pub part_two: fn(&str) -> Option<i32>,
 }
 
 impl Day {
+    fn dir(&self) -> &Path {
+        Path::new(&self.loc).parent().unwrap()
+    }
     pub fn run(&self) -> Result<(), Box<dyn Error>> {
         let mut input_file = String::from("input.txt");
         let mut example = 0;
@@ -49,23 +52,23 @@ impl Day {
             input_file = format!("example{}.txt", example).to_string()
         };
 
-        if !&self.loc.parent().unwrap().join(input_file.clone()).exists() {
+        if !&self.dir().join(input_file.clone()).exists() {
             input_file = "example.txt".to_string();
         }
-        let input_path = &self.loc.parent().unwrap().join(input_file);
+        let input_path = &self.dir().join(input_file);
 
         let input = std::fs::read_to_string(input_path.clone())
             .expect(&format!("could not open data file {:?}", &input_path));
 
         if !only_two {
             let start = Instant::now();
-            let result = (&self.part_one)(input.clone()).unwrap();
+            let result = (&self.part_one)(input.as_str()).unwrap();
             let elapsed = start.elapsed();
             println!("part one: {:?} (took: {:?})", result, elapsed);
         }
         if !only_one {
             let start = Instant::now();
-            let result = (&self.part_two)(input.clone()).unwrap();
+            let result = (&self.part_two)(input.as_str()).unwrap();
             let elapsed = start.elapsed();
             println!("part two: {:?} (took: {:?})", result, elapsed);
         }
