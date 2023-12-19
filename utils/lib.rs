@@ -12,10 +12,8 @@ impl Day {
         Path::new(&self.loc).parent().unwrap()
     }
     pub fn run(&self) -> Result<(), Box<dyn Error>> {
-        let mut input_file = String::from("input.txt");
-        let mut example = 0;
-        let mut only_one = false;
-        let mut only_two = false;
+        let mut input_file = "";
+        let mut part = "";
 
         let args: Vec<String> = env::args().collect();
         let mut args_iter = args.iter().peekable();
@@ -24,49 +22,31 @@ impl Day {
             match arg.as_str() {
                 "--input" => {
                     if let Some(next_arg) = args_iter.peek() {
-                        input_file = next_arg.to_string();
-                        args_iter.next(); // Advance the iterator since we've used this argument
+                        input_file = next_arg;
+                        args_iter.next();
                     }
                 }
-                "--one" => only_one = true,
-                "--two" => only_two = true,
-
-                "--example" => {
-                    example = if let Some(next_arg) = args_iter.peek() {
-                        // Check if the next argument is a number
-                        if next_arg.parse::<i32>().is_ok() {
-                            args_iter.next().and_then(|n| n.parse().ok()).unwrap_or(1)
-                        } else {
-                            1 // Default to 1 if next argument is not a number
-                        }
-                    } else {
-                        1 // Default to 1 if no argument follows
-                    };
+                "--part" => {
+                    if let Some(next_arg) = args_iter.peek() {
+                        part = next_arg;
+                        args_iter.next();
+                    }
                 }
-
-                _ => {} // Ignore unrecognized arguments or handle them as needed
+                _ => {} // Ignore unrecognized arguments
             }
-        }
-
-        if example != 0 {
-            input_file = format!("example{}.txt", example).to_string()
-        };
-
-        if !&self.dir().join(input_file.clone()).exists() {
-            input_file = "example.txt".to_string();
         }
         let input_path = &self.dir().join(input_file);
 
         let input = std::fs::read_to_string(input_path.clone())
             .expect(&format!("could not open data file {:?}", &input_path));
 
-        if !only_two {
+        if part == "one" {
             let start = Instant::now();
             let result = (&self.part_one)(input.as_str()).unwrap();
             let elapsed = start.elapsed();
             println!("part one: {:?} (took: {:?})", result, elapsed);
         }
-        if !only_one {
+        if part == "two" {
             let start = Instant::now();
             let result = (&self.part_two)(input.as_str()).unwrap();
             let elapsed = start.elapsed();

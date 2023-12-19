@@ -1,14 +1,14 @@
 use utils::Day;
 
-pub fn part_one(input: String) -> Option<i32> {
+pub fn part_one(input: &str) -> Option<i32> {
     None
 }
 
-pub fn part_two(input: String) -> Option<i32> {
+pub fn part_two(input: &str) -> Option<i32> {
     None
 }
 
-let DAY = Day {
+const DAY: Day = Day {
     loc: file!(),
     part_one,
     part_two,
@@ -33,4 +33,3 @@ mod tests {
         assert_eq!(part_two(input), Some(420));
     }
 }
-

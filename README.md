@@ -1,11 +1,30 @@
-# [[http://adventofcode.com][🎅 Advent of Code 💻]]
+# [🎅 Advent of Code 💻](http://adventofcode.com)
 
 ## Requirements
 * [aoc-cli](https://github.com/scarvalhojr/aoc-cli) (for the puzzle and input download)
+* python 3.12+
+* requirements in `Cargo.toml`, `go.mod`, `Pipfile`, etc.
 
 ## Usage
-* `./aoc scaffold --lang=[go|rust|python] --year=2023 --day=1` will create `./2023/day01/{main.go,example.txt,input.txt,puzzle.md}`, `main.go` is a copy of `template.go` in the repo root.
-* `./aoc solve --lang=[go|rust|python] --year=2023 --day=1 --one --example=2` runs the solver for part one of 2023/1 on the 2nd example input, i.e. a file named `example2.txt`
+```
+ $ python aoc.py --help
+
+ Usage: aoc.py [OPTIONS] COMMAND [ARGS]...
+
+╭─ Options ───────────────────────────────────────────────────────────────────────╮
+│ --install-completion          Install completion for the current shell.         │
+│ --show-completion             Show completion for the current shell, to copy it │
+│                               or customize the installation.                    │
+│ --help                        Show this message and exit.                       │
+╰─────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ──────────────────────────────────────────────────────────────────────╮
+│ download  Download the puzzle input and description (converted to markdown).    │
+│ scaffold  Scaffold the day's folder from the language's template file.          │
+│           Downloads input & description if not present.                         │
+│ solve     Run the selected language's solver for the given year, day, and part. │
+│ test      Run tests (if any) for the specified year and day.                    │
+╰─────────────────────────────────────────────────────────────────────────────────╯
+```
 
 ## TODO
 Update previous years and languages to new structure
