@@ -10,7 +10,7 @@ type position struct {
 	col int
 }
 
-func part1(input utils.Input) (answer interface{}) {
+func compute_galaxy_dists(input utils.Input, expansion_factor int) int {
 	var galaxies []position
 
 	for row, line := range input.LineSlice() {
@@ -41,11 +41,10 @@ func part1(input utils.Input) (answer interface{}) {
 						continue row_loop
 					}
 				}
-				rows += 1
+				rows += expansion_factor - 1
 			}
 
 			cols := col_upper - col_lower
-
 		col_loop:
 			for r := col_lower + 1; r < col_upper; r++ {
 				for _, g := range galaxies {
@@ -53,7 +52,7 @@ func part1(input utils.Input) (answer interface{}) {
 						continue col_loop
 					}
 				}
-				cols += 1
+				cols += expansion_factor - 1
 			}
 			log.Println("distance between", i+1, "and", j+1, ":", rows+cols, "(", rows, cols, ")")
 			total_dist += rows + cols
@@ -63,8 +62,12 @@ func part1(input utils.Input) (answer interface{}) {
 	return total_dist
 }
 
+func part1(input utils.Input) (answer interface{}) {
+	return compute_galaxy_dists(input, 2)
+}
+
 func part2(input utils.Input) (answer interface{}) {
-	return
+	return compute_galaxy_dists(input, 1e6)
 }
 
 func main() {
