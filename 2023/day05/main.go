@@ -54,7 +54,6 @@ func part1_old(input utils.Input) interface{} {
 		if loc < min_loc {
 			min_loc = loc
 		}
-
 	}
 
 	return min_loc
@@ -100,7 +99,6 @@ type Interval struct {
 
 func (i Interval) convert(offset int) Interval {
 	return Interval{start: i.start + offset, end: i.end + offset}
-
 }
 
 func (r Interval) String() string {
@@ -217,14 +215,14 @@ func part2(input utils.Input) interface{} {
 				}
 
 				if seed.end <= rule.end {
-					//seed fits into rule interval
+					// seed fits into rule interval
 					converted_seed := seed.convert(rule.offset)
 					log.Println("converting (->seed.end):", seed, "->", converted_seed)
 					converted_seeds = append(converted_seeds, converted_seed)
 					seed.start = seed.end
 					break
 				} else {
-					//seed overflows rule interval
+					// seed overflows rule interval
 					seed_part := Interval{start: seed.start, end: rule.end}
 					converted_seed_part := seed_part.convert(rule.offset)
 					converted_seeds = append(converted_seeds, converted_seed_part)
@@ -254,7 +252,6 @@ func part2(input utils.Input) interface{} {
 				merged_seeds = append(merged_seeds, current)
 				current = next
 			}
-
 		}
 		merged_seeds = append(merged_seeds, current)
 		log.Println("merged seeds:", merged_seeds)

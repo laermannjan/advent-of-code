@@ -71,7 +71,6 @@ func (h hand) get_type(joker bool) (typ int) {
 				typ = five_kind
 			}
 		}
-
 	}
 
 	return
@@ -126,14 +125,12 @@ func part1(input utils.Input) interface{} {
 		cards_a := []rune(a.cards)
 		cards_b := []rune(b.cards)
 		for i := 0; i < len(cards_a); i++ {
-
 			if cards_a[i] != cards_b[i] {
 				cmp_val := cardValues[cards_a[i]] - cardValues[cards_b[i]]
 				return cmp_val
 			}
 		}
 		return 0
-
 	})
 
 	log.Println("\n", hands)
@@ -162,14 +159,12 @@ func part2(input utils.Input) interface{} {
 		cards_a := []rune(a.cards)
 		cards_b := []rune(b.cards)
 		for i := 0; i < len(cards_a); i++ {
-
 			if cards_a[i] != cards_b[i] {
 				cmp_val := cardValuesJoker[cards_a[i]] - cardValuesJoker[cards_b[i]]
 				return cmp_val
 			}
 		}
 		return 0
-
 	})
 
 	log.Println("\n", hands)

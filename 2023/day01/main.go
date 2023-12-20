@@ -1,11 +1,10 @@
 package main
 
 import (
+	"aoc-go/utils"
 	"strconv"
 	"strings"
 	"unicode"
-
-	"aoc-go/utils"
 )
 
 func part1(input utils.Input) interface{} {

@@ -1,12 +1,12 @@
-from enum import StrEnum
 import shutil
-import rich
 import subprocess
-from pathlib import Path
-import typer
-from typing import Annotated
 from datetime import date
+from enum import StrEnum
+from pathlib import Path
+from typing import Annotated
 
+import rich
+import typer
 
 app = typer.Typer()
 root_path = Path(__file__).resolve().parent

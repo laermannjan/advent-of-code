@@ -32,7 +32,6 @@ func getDirections(lines []string, x, y int) []Pair {
 		possible_dirs = append(possible_dirs, dir)
 	}
 	return possible_dirs
-
 }
 
 func part1(input utils.Input) interface{} {

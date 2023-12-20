@@ -82,7 +82,6 @@ func part2(input utils.Input) interface{} {
 	wins := max_s - min_s + 1
 
 	return wins
-
 }
 
 func main() {

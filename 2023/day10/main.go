@@ -106,7 +106,6 @@ func part1(input utils.Input) interface{} {
 			prev_move = opts[1]
 		} else {
 			prev_move = opts[0]
-
 		}
 		log.Println("move:", prev_move)
 		current, _ = current.move(maze, prev_move)
@@ -163,7 +162,6 @@ func part2(input utils.Input) interface{} {
 			prev_move = opts[1]
 		} else {
 			prev_move = opts[0]
-
 		}
 		log.Println("move:", prev_move)
 		current, _ = current.move(maze, prev_move)
