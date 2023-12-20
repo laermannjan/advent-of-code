@@ -101,9 +101,11 @@ def solve(
             input = input.resolve()
 
     if example:
-        input.with_stem(f"example{example}")
+        print("replacing with example<n>")
+        input = input.with_stem(f"example{example}")
     if not input.is_file():
-        input.with_stem("example")
+        print("replacing with example")
+        input = input.with_stem("example")
 
     command = ""
     day_dir = root_path / str(year) / f"day{day:02d}"
