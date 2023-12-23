@@ -5,54 +5,43 @@ import (
 	"log"
 )
 
-func transpose(pattern []string) []string {
-	var rune_pattern [][]rune
-	for _, row := range pattern {
-		rune_pattern = append(rune_pattern, []rune(row))
-	}
-
-	var transposed []string
-	for col := range rune_pattern[0] {
-		var t_row []rune
-		for row := range rune_pattern {
-			t_row = append(t_row, rune_pattern[row][col])
-		}
-		transposed = append(transposed, string(t_row))
-	}
-	return transposed
-}
-
-func part1(input utils.Input) (answer interface{}) {
-	dish := input.LineSlice()
-
-	load := 0
-
-	t_dish := transpose(dish)
-	var shifted []string
-	for _, row := range t_dish {
+func tilt(dish [][]rune) (shifted [][]rune, load int) {
+	for c := 0; c < len(dish); c++ {
 		skipped := 0
-		var shifted_row []rune
-		for _, stone := range row {
+		var shifted_col []rune
+		for r := range dish {
+			stone := dish[r][c]
 			switch stone {
 			case '.':
 				skipped++
 			case 'O':
-				load += len(row) - len(shifted_row)
-				shifted_row = append(shifted_row, stone)
+				load += len(dish) - len(shifted_col)
+				shifted_col = append(shifted_col, stone)
 			case '#':
 				for i := 0; i < skipped; i++ {
-					shifted_row = append(shifted_row, '.')
+					shifted_col = append(shifted_col, '.')
 				}
-				shifted_row = append(shifted_row, '#')
+				shifted_col = append(shifted_col, '#')
 				skipped = 0
 			}
 		}
 		for i := 0; i < skipped; i++ {
-			shifted_row = append(shifted_row, '.')
+			shifted_col = append(shifted_col, '.')
 		}
-		shifted = append(shifted, string(shifted_row))
+
+		shifted = append(shifted, shifted_col)
 	}
-	shifted = transpose(shifted)
+	return
+}
+
+func part1(input utils.Input) (answer interface{}) {
+	var dish [][]rune
+	for _, row := range input.LineSlice() {
+		dish = append(dish, []rune(row))
+	}
+
+	shifted, load := tilt(dish)
+
 	log.Println("original\tshifted north")
 	for i := 0; i < len(dish); i++ {
 		log.Println(dish[i], "\t", shifted[i])
