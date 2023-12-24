@@ -195,6 +195,11 @@ path="{year}/{day:02d}/main.rs"
 
     if not (day_dir / "input.txt").exists():
         download(year=year, day=day)
+    if (
+        not (day_dir / "example.txt").exists()
+        and not (day_dir / "example1.txt").exists()
+    ):
+        subprocess.call(f"$EDITOR {day_dir/'example.txt'}", shell=True)
 
 
 @app.command()
