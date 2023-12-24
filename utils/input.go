@@ -11,6 +11,7 @@ import (
 type Input interface {
 	Lines() <-chan string
 	LineSlice() []string
+	RunesSlice() [][]rune
 	Sections() <-chan string
 	SectionSlice() []string
 }
@@ -45,6 +46,14 @@ func (fi *FileInput) LineSlice() []string {
 		line_slice = append(line_slice, line)
 	}
 	return line_slice
+}
+
+func (fi *FileInput) RunesSlice() [][]rune {
+	runes_slice := [][]rune{}
+	for line := range fi.Lines() {
+		runes_slice = append(runes_slice, []rune(line))
+	}
+	return runes_slice
 }
 
 func (fi *FileInput) Sections() <-chan string {
