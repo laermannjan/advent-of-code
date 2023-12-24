@@ -173,7 +173,57 @@ func part1(input utils.Input) (answer interface{}) {
 }
 
 func part2(input utils.Input) (answer interface{}) {
-	return
+	var grid Grid = input.RunesSlice()
+	starts := []Item{}
+	starts = append(starts, Item{Position{0, 0}, south})
+	starts = append(starts, Item{Position{0, 0}, east})
+	starts = append(starts, Item{Position{0, len(grid[0]) - 1}, south})
+	starts = append(starts, Item{Position{0, len(grid[0]) - 1}, west})
+	starts = append(starts, Item{Position{len(grid) - 1, 0}, south})
+	starts = append(starts, Item{Position{len(grid) - 1, 0}, east})
+	starts = append(starts, Item{Position{len(grid) - 1, len(grid[0]) - 1}, south})
+	starts = append(starts, Item{Position{len(grid) - 1, len(grid[0]) - 1}, west})
+	for row := 1; row < len(grid)-1; row++ {
+		starts = append(starts, Item{Position{row: row, col: 0}, east})
+		starts = append(starts, Item{Position{row: row, col: len(grid[0]) - 1}, west})
+	}
+	for col := 1; col < len(grid[0])-1; col++ {
+		starts = append(starts, Item{Position{row: 0, col: col}, south})
+		starts = append(starts, Item{Position{row: len(grid) - 1, col: col}, north})
+	}
+
+	max_energized := 0
+
+	for _, start := range starts {
+		queue := []Item{start}
+		processed := map[Item]bool{}
+		energized := map[Position]bool{start.p: true}
+		n_energized := 1
+
+		for len(queue) > 0 {
+			log.Println("queue", queue)
+			item := queue[0]
+			queue = queue[1:]
+
+			if _, ok := energized[item.p]; !ok {
+				energized[item.p] = true
+				n_energized++
+			}
+
+			for _, next_item := range grid.next(item) {
+				if _, ok := processed[next_item]; !ok {
+					log.Println("adding", next_item)
+					processed[next_item] = true
+					queue = append(queue, next_item)
+				}
+			}
+
+		}
+
+		max_energized = max(max_energized, n_energized)
+
+	}
+	return max_energized
 }
 
 func main() {
