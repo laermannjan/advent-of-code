@@ -158,6 +158,87 @@ func part1(input utils.Input) (answer interface{}) {
 }
 
 func part2(input utils.Input) (answer interface{}) {
+	grid := input.RunesSlice()
+	q := PriorityQueue{}
+	heap.Init(&q)
+	heap.Push(&q, QItem{row: 0, col: 0, heatLoss: 0, drow: 0, dcol: 0, stepsStraight: 0})
+
+	seen := map[SeenItem]bool{}
+
+	i := 0
+	for len(q) > 0 {
+		log.Printf("%v, %v", q[0], len(q))
+		item := heap.Pop(&q).(QItem)
+
+		if item.row == len(grid)-1 && item.col == len(grid[0])-1 && item.stepsStraight >= 4 {
+			print(i)
+			return item.heatLoss
+		}
+
+		seenItem := SeenItem{
+			row:           item.row,
+			col:           item.col,
+			drow:          item.drow,
+			dcol:          item.dcol,
+			stepsStraight: item.stepsStraight,
+		}
+
+		if _, ok := seen[seenItem]; ok {
+			continue
+		}
+
+		seen[seenItem] = true
+
+		if item.stepsStraight < 10 && !(item.drow == 0 && item.dcol == 0) {
+			nrow := item.row + item.drow
+			ncol := item.col + item.dcol
+
+			if 0 <= nrow && nrow < len(grid) && 0 <= ncol && ncol < len(grid[0]) {
+				// log.Println("adding straight", nrow, ncol)
+				heap.Push(&q, QItem{
+					row:           nrow,
+					col:           ncol,
+					drow:          item.drow,
+					dcol:          item.dcol,
+					heatLoss:      item.heatLoss + utils.Atoi(string(grid[nrow][ncol])),
+					stepsStraight: item.stepsStraight + 1,
+				})
+			}
+
+		}
+
+		if item.stepsStraight >= 4 || (item.drow == 0 && item.dcol == 0) {
+			for _, offset := range []Position{
+				{0, 1},
+				{1, 0},
+				{0, -1},
+				{-1, 0},
+			} {
+				// log.Println("checking offset", offset, "for item", item)
+				ndrow := offset.row
+				ndcol := offset.col
+				if !(ndrow == item.drow && ndcol == item.dcol) && !(ndrow == -item.drow && ndcol == -item.dcol) {
+					// log.Println("not straight and not opposite")
+
+					nrow := item.row + ndrow
+					ncol := item.col + ndcol
+					if 0 <= nrow && nrow < len(grid) && 0 <= ncol && ncol < len(grid[0]) {
+						// log.Println("adding", nrow, ncol)
+						heap.Push(&q, QItem{
+							row:           nrow,
+							col:           ncol,
+							drow:          offset.row,
+							dcol:          offset.col,
+							heatLoss:      item.heatLoss + utils.Atoi(string(grid[nrow][ncol])),
+							stepsStraight: 1,
+						})
+					}
+				}
+			}
+		}
+		i++
+
+	}
 	return
 }
 
