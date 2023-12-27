@@ -11,20 +11,48 @@ type Position struct {
 	col int
 }
 
+func (p *Position) Equal(other Position) bool {
+	return p.row == other.row && p.col == other.col
+}
+
+func (p *Position) Move(off Offset) Position {
+	return Position{
+		row: p.row + off.row,
+		col: p.col + off.col,
+	}
+}
+
+type Offset struct {
+	row int
+	col int
+}
+
+func (p *Offset) Equal(other Offset) bool {
+	return p.row == other.row && p.col == other.col
+}
+
+func (p *Offset) Opposite(other Offset) bool {
+	return p.row == -other.row && p.col == -other.col
+}
+
+var (
+	north Offset = Offset{-1, 0}
+	south Offset = Offset{1, 0}
+	west  Offset = Offset{0, -1}
+	east  Offset = Offset{0, 1}
+	null  Offset = Offset{0, 0}
+)
+
 type QItem struct {
-	heatLoss      int
-	row           int
-	col           int
-	drow          int
-	dcol          int
-	stepsStraight int
+	heatLoss  int
+	pos       Position
+	moved     Offset
+	nStraight int
 }
 
 type SeenItem struct {
-	row           int
-	col           int
-	drow          int
-	dcol          int
+	pos           Position
+	moved         Offset
 	stepsStraight int
 }
 
@@ -35,22 +63,7 @@ func (pq PriorityQueue) Len() int {
 }
 
 func (pq PriorityQueue) Less(i, j int) bool {
-	if pq[i].heatLoss != pq[j].heatLoss {
-		return pq[i].heatLoss < pq[j].heatLoss
-	}
-	if pq[i].row != pq[j].row {
-		return pq[i].row < pq[j].row
-	}
-	if pq[i].col != pq[j].col {
-		return pq[i].col < pq[j].col
-	}
-	if pq[i].drow != pq[j].drow {
-		return pq[i].drow < pq[j].drow
-	}
-	if pq[i].dcol != pq[j].dcol {
-		return pq[i].dcol < pq[j].dcol
-	}
-	return pq[i].stepsStraight < pq[j].stepsStraight
+	return pq[i].heatLoss < pq[j].heatLoss
 }
 
 func (pq PriorityQueue) Swap(i, j int) {
@@ -62,19 +75,32 @@ func (pq *PriorityQueue) Push(x any) {
 }
 
 func (pq *PriorityQueue) Pop() any {
-	old := *pq
-	n := len(old)
-	item := old[n-1]
-	// old[n-1] = nil // avoid memory leak
-	*pq = old[0 : n-1]
+	n := pq.Len()
+	item := (*pq)[n-1]
+	*pq = (*pq)[:n-1]
 	return item
 }
 
+type Grid [][]rune
+
+func (grid *Grid) contains(p Position) bool {
+	g := *grid
+	return 0 <= p.row && p.row < len(g) && 0 <= p.col && p.col < len(g[0])
+}
+
+func (grid *Grid) getHeatLoss(p Position) int {
+	g := *grid
+	return utils.Atoi(string(g[p.row][p.col]))
+}
+
 func part1(input utils.Input) (answer interface{}) {
-	grid := input.RunesSlice()
+	var grid Grid = input.RunesSlice()
+	start := Position{0, 0}
+	end := Position{len(grid) - 1, len(grid[0]) - 1}
+
 	q := PriorityQueue{}
 	heap.Init(&q)
-	heap.Push(&q, QItem{row: 0, col: 0, heatLoss: 0, drow: 0, dcol: 0, stepsStraight: 0})
+	heap.Push(&q, QItem{heatLoss: 0, pos: start, moved: null, nStraight: 0})
 
 	seen := map[SeenItem]bool{}
 
@@ -83,17 +109,15 @@ func part1(input utils.Input) (answer interface{}) {
 		log.Printf("%v, %v", q[0], len(q))
 		item := heap.Pop(&q).(QItem)
 
-		if item.row == len(grid)-1 && item.col == len(grid[0])-1 {
+		if item.pos.Equal(end) {
 			print(i)
 			return item.heatLoss
 		}
 
 		seenItem := SeenItem{
-			row:           item.row,
-			col:           item.col,
-			drow:          item.drow,
-			dcol:          item.dcol,
-			stepsStraight: item.stepsStraight,
+			pos:           item.pos,
+			moved:         item.moved,
+			stepsStraight: item.nStraight,
 		}
 
 		if _, ok := seen[seenItem]; ok {
@@ -102,66 +126,42 @@ func part1(input utils.Input) (answer interface{}) {
 
 		seen[seenItem] = true
 
-		if item.stepsStraight < 3 && !(item.drow == 0 && item.dcol == 0) {
-			nrow := item.row + item.drow
-			ncol := item.col + item.dcol
+		for _, offset := range []Offset{north, south, west, east} {
+			next_pos := item.pos.Move(offset)
+			nStraight := item.nStraight
+			if !grid.contains(next_pos) {
+				continue
+			} else if offset.Opposite(item.moved) {
+				continue
+			} else if offset.Equal(item.moved) {
+				nStraight += 1
+			} else {
+				nStraight = 1
+			}
 
-			if 0 <= nrow && nrow < len(grid) && 0 <= ncol && ncol < len(grid[0]) {
-				// log.Println("adding straight", nrow, ncol)
+			if nStraight <= 3 {
 				heap.Push(&q, QItem{
-					row:           nrow,
-					col:           ncol,
-					drow:          item.drow,
-					dcol:          item.dcol,
-					heatLoss:      item.heatLoss + utils.Atoi(string(grid[nrow][ncol])),
-					stepsStraight: item.stepsStraight + 1,
+					pos:       next_pos,
+					moved:     offset,
+					heatLoss:  item.heatLoss + grid.getHeatLoss(next_pos),
+					nStraight: nStraight,
 				})
 			}
 
 		}
 
-		for _, offset := range []Position{
-			{0, 1},
-			{1, 0},
-			{0, -1},
-			{-1, 0},
-		} {
-			// log.Println("checking offset", offset, "for item", item)
-			ndrow := offset.row
-			ndcol := offset.col
-			if !(ndrow == item.drow && ndcol == item.dcol) && !(ndrow == -item.drow && ndcol == -item.dcol) {
-				// log.Println("not straight and not opposite")
-
-				nrow := item.row + ndrow
-				ncol := item.col + ndcol
-				if 0 <= nrow && nrow < len(grid) && 0 <= ncol && ncol < len(grid[0]) {
-					// log.Println("adding", nrow, ncol)
-					heap.Push(&q, QItem{
-						row:           nrow,
-						col:           ncol,
-						drow:          offset.row,
-						dcol:          offset.col,
-						heatLoss:      item.heatLoss + utils.Atoi(string(grid[nrow][ncol])),
-						stepsStraight: 1,
-					})
-				}
-			}
-		}
-		i++
-
 	}
-	// for r, line := range input.RunesSlice() {
-	// 	for c, heat_loss := range line {
-	// 	}
-	// }
 	return
 }
 
 func part2(input utils.Input) (answer interface{}) {
-	grid := input.RunesSlice()
+	var grid Grid = input.RunesSlice()
+	start := Position{0, 0}
+	end := Position{len(grid) - 1, len(grid[0]) - 1}
+
 	q := PriorityQueue{}
 	heap.Init(&q)
-	heap.Push(&q, QItem{row: 0, col: 0, heatLoss: 0, drow: 0, dcol: 0, stepsStraight: 0})
+	heap.Push(&q, QItem{heatLoss: 0, pos: start, moved: null, nStraight: 0})
 
 	seen := map[SeenItem]bool{}
 
@@ -170,17 +170,15 @@ func part2(input utils.Input) (answer interface{}) {
 		log.Printf("%v, %v", q[0], len(q))
 		item := heap.Pop(&q).(QItem)
 
-		if item.row == len(grid)-1 && item.col == len(grid[0])-1 && item.stepsStraight >= 4 {
+		if item.pos.Equal(end) && item.nStraight >= 4 {
 			print(i)
 			return item.heatLoss
 		}
 
 		seenItem := SeenItem{
-			row:           item.row,
-			col:           item.col,
-			drow:          item.drow,
-			dcol:          item.dcol,
-			stepsStraight: item.stepsStraight,
+			pos:           item.pos,
+			moved:         item.moved,
+			stepsStraight: item.nStraight,
 		}
 
 		if _, ok := seen[seenItem]; ok {
@@ -189,54 +187,33 @@ func part2(input utils.Input) (answer interface{}) {
 
 		seen[seenItem] = true
 
-		if item.stepsStraight < 10 && !(item.drow == 0 && item.dcol == 0) {
-			nrow := item.row + item.drow
-			ncol := item.col + item.dcol
-
-			if 0 <= nrow && nrow < len(grid) && 0 <= ncol && ncol < len(grid[0]) {
-				// log.Println("adding straight", nrow, ncol)
-				heap.Push(&q, QItem{
-					row:           nrow,
-					col:           ncol,
-					drow:          item.drow,
-					dcol:          item.dcol,
-					heatLoss:      item.heatLoss + utils.Atoi(string(grid[nrow][ncol])),
-					stepsStraight: item.stepsStraight + 1,
-				})
-			}
-
-		}
-
-		if item.stepsStraight >= 4 || (item.drow == 0 && item.dcol == 0) {
-			for _, offset := range []Position{
-				{0, 1},
-				{1, 0},
-				{0, -1},
-				{-1, 0},
-			} {
-				// log.Println("checking offset", offset, "for item", item)
-				ndrow := offset.row
-				ndcol := offset.col
-				if !(ndrow == item.drow && ndcol == item.dcol) && !(ndrow == -item.drow && ndcol == -item.dcol) {
-					// log.Println("not straight and not opposite")
-
-					nrow := item.row + ndrow
-					ncol := item.col + ndcol
-					if 0 <= nrow && nrow < len(grid) && 0 <= ncol && ncol < len(grid[0]) {
-						// log.Println("adding", nrow, ncol)
-						heap.Push(&q, QItem{
-							row:           nrow,
-							col:           ncol,
-							drow:          offset.row,
-							dcol:          offset.col,
-							heatLoss:      item.heatLoss + utils.Atoi(string(grid[nrow][ncol])),
-							stepsStraight: 1,
-						})
-					}
+		for _, offset := range []Offset{north, south, west, east} {
+			next_pos := item.pos.Move(offset)
+			nStraight := item.nStraight
+			if !grid.contains(next_pos) {
+				continue
+			} else if offset.Opposite(item.moved) {
+				continue
+			} else if offset.Equal(item.moved) {
+				if nStraight >= 10 {
+					continue
 				}
+				nStraight += 1
+			} else {
+				if nStraight < 4 && !item.moved.Equal(null) {
+					continue
+				}
+				nStraight = 1
 			}
+
+			heap.Push(&q, QItem{
+				pos:       next_pos,
+				moved:     offset,
+				heatLoss:  item.heatLoss + grid.getHeatLoss(next_pos),
+				nStraight: nStraight,
+			})
+
 		}
-		i++
 
 	}
 	return
