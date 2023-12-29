@@ -3,13 +3,21 @@ package utils
 import "cmp"
 
 // greatest common divisor (GCD) via Euclidean algorithm
-func GCD(a, b int) int {
+func gcd(a, b int) int {
 	for b != 0 {
 		t := b
 		b = a % b
 		a = t
 	}
 	return a
+}
+
+func GCD(integers ...int) int {
+	_gcd := gcd(integers[0], integers[1])
+	for i := 2; i < len(integers); i++ {
+		_gcd = gcd(_gcd, integers[i])
+	}
+	return _gcd
 }
 
 // find Least Common Multiple (LCM) via GCD
