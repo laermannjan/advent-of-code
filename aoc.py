@@ -119,7 +119,8 @@ def solve(
                 cmd = f"{cmd} --release"
             command = f"{cmd} --bin {year}-{day:02d} --"
         case Language.python:
-            print("running python")
+            bin = day_dir / "main.py"
+            command = f"python {bin}"
 
     command = f"{command} --input {str(input)} --part {str(part)}"
 
@@ -127,7 +128,11 @@ def solve(
         command = f"{command} --verbose"
 
     rich.print(f"[italic]{command=}[/italic]")
-    subprocess.run(command, shell=True)
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    if result.stdout:
+        print(result.stdout)  # Print standard output
+    if result.stderr:
+        print(result.stderr)  # Print any errors
 
 
 @app.command()
@@ -148,10 +153,16 @@ def test(
         case Language.rust:
             command = f"cargo test --bin {year}-{day:02d} --"
         case Language.python:
-            print("running python")
+            bin = day_dir / "main.py"
+            command = f"python {bin}"
     print(f"running {command=}")
 
-    subprocess.run(command, shell=True)
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+
+    print("STDOUT:")
+    print(result.stdout)  # Print standard output
+    print("STDERR:")
+    print(result.stderr)  # Print any errors
 
 
 @app.command()
