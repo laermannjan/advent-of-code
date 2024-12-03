@@ -1,3 +1,4 @@
+import inspect
 import os
 from pathlib import Path
 from typing import Generator, Self
@@ -18,6 +19,14 @@ class Input:
     @classmethod
     def from_input(cls, year: int, day: int) -> Self:
         return cls(f"{os.getenv('AOC_DATA_ROOT')}/{year}/inputs/{day:02d}.txt")
+
+    @classmethod
+    def from_file_relpath(cls, path: str | Path) -> Self:
+        """Interpret `path` as relative to `__file__` of the caller."""
+        if isinstance(path, str):
+            path = Path(path)
+        path = Path(inspect.stack()[1].filename).resolve().parent / path
+        return cls(path)
 
     def elements(self, sep: str | None = None) -> Generator[str]:
         """Yield elements stratified over lines.
