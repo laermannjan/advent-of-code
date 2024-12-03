@@ -26,7 +26,14 @@ class Day:
 
         fn = self.part_one if args.part == "one" else self.part_two
 
-        start = time.perf_counter()
+        start = time.perf_counter_ns()
         result = fn(Input(args.input))
-        elapsed = time.perf_counter() - start
-        print(f"Part {args.part}: {result} (took: {elapsed:.2f}s)")
+        elapsed = time.perf_counter_ns() - start
+
+        print(elapsed)
+        units = ["ns", "µs", "ms", "s"]
+        for i, unit in enumerate(units):
+            if elapsed < 100:
+                break
+            elapsed *= 1e-3
+        print(f"Part {args.part}: {result} (took: {elapsed:.2f}{unit})")
