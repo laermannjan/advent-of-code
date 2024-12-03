@@ -101,7 +101,7 @@ def solve(
             input = input.resolve()
 
     if example:
-        print("replacing with example<n>")
+        print(f"looking for example{example}")
         input = input.with_stem(f"example{example}")
     if not input.is_file():
         print("replacing with example")

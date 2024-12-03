@@ -30,7 +30,6 @@ class Day:
         result = fn(Input(args.input))
         elapsed = time.perf_counter_ns() - start
 
-        print(elapsed)
         units = ["ns", "µs", "ms", "s"]
         for i, unit in enumerate(units):
             if elapsed < 100:
