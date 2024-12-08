@@ -28,6 +28,11 @@ class Input:
         path = Path(inspect.stack()[1].filename).resolve().parent / path
         return cls(path)
 
+    def coords(self) -> Generator[tuple[tuple[int, int], str]]:
+        for r, row in enumerate(self.lines()):
+            for c, col in enumerate(row):
+                yield (r, c), col
+
     def elements(self, sep: str | None = None) -> Generator[str]:
         """Yield elements stratified over lines.
         If sep is None, elements are at each index; "a  o,c" -> ['a', ' ', ' ', 'o', ',', 'c']
