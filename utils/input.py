@@ -54,11 +54,14 @@ class Input:
         empty_lines = 0
         with self.path.open() as f:
             section = []
-            while line := f.readline().rstrip("\n"):
+            while line := f.readline():
+                line = line.rstrip("\n")
                 if line == "":
                     empty_lines += 1
                     if empty_lines == gap:
                         yield section
                         empty_lines = 0
                         section = []
-                section.append(line)
+                else:
+                    section.append(line)
+            yield section
