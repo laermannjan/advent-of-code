@@ -1,0 +1,173 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+print_usage() {
+    echo "Usage: aoc <command> [args]" >&2
+    echo "" >&2
+    echo "Commands:" >&2
+    echo "  load [day]                 - Load input for specified day (or next day if omitted)" >&2
+    echo "  run [day_part] [input]     - Run solution with specified input" >&2
+    echo "" >&2
+    echo "Run examples:" >&2
+    echo "  aoc run                    - Run latest solution with example.txt" >&2
+    echo "  aoc run input              - Run latest solution with input.txt" >&2
+    echo "  aoc run 5a                 - Run day 5 part a with example.txt" >&2
+    echo "  aoc run 13b example2       - Run day 13 part b with example2.txt" >&2
+    echo "  aoc run < custom.txt       - Run latest solution with an arbitary input file" >&2
+    echo "  echo '1 2 3' | aoc run 5a  - Pipe input to day 5 part a" >&2
+    exit 1
+}
+
+if [[ -z "${AOC_COOKIE:-}" ]]; then
+    echo "Error: AOC_COOKIE environment variable not set" >&2
+    echo "Set it to your session cookie from adventofcode.com" >&2
+    exit 1
+fi
+
+YEAR=${AOC_YEAR:-$(date +%Y)}
+LANG=${AOC_LANG:-"py"}
+
+parse_day() {
+    local raw_day="$1"
+    if [[ "$raw_day" =~ ^[0-9]+$ ]] && ((raw_day >= 1 && raw_day <= 25)); then
+        printf "%02d" "$raw_day"
+    else
+        echo "Day must be between 1 and 25" >&2
+        exit 1
+    fi
+}
+
+# Find latest day with an input file
+get_latest_input_day() {
+    find "$YEAR" -type f -name "input.txt" | sort -r | head -n1 | sed -E 's/.*day([0-9]+).*/\1/'
+}
+
+get_latest_solution() {
+    local solution_path=$(find "$YEAR" -type f -name "[ab].$LANG" | sort -r | head -n1)
+    if [[ -z "$solution_path" ]]; then
+        echo "No solution files found for language $LANG in year $YEAR" >&2
+        exit 1
+    fi
+    local day=$(echo "$solution_path" | sed -E 's/.*day([0-9]{2}).*/\1/')
+    local part=$(echo "$solution_path" | sed -E 's/.*\/([ab])\.[^.]+/\1/')
+    echo "$day $part"
+}
+
+# Parse day and part from format like "5a" -> "05 a"
+parse_day_part() {
+    if [[ "$1" =~ ^([0-9]+)([ab])$ ]]; then
+        echo "$(parse_day "${BASH_REMATCH[1]}") ${BASH_REMATCH[2]}"
+    else
+        echo "Invalid format. Expected: <day><part> (e.g., 5a)" >&2
+        exit 1
+    fi
+}
+
+run_solution() {
+    local day="$1" part="$2" input_type="$3"
+    local dir="$YEAR/day$day"
+    local input_file="$dir/$input_type.txt"
+    local solution_file="$dir/$part.$LANG"
+
+    if [[ ! -f "$solution_file" ]]; then
+        echo "Solution file $solution_file not found" >&2
+        exit 1
+    fi
+
+    if [[ ! -f "$input_file" && ! -p /dev/stdin ]]; then
+        echo "Input file $input_file not found" >&2
+        exit 1
+    fi
+
+    case "$LANG" in
+        "py") cmd="uv run --project $YEAR python" ;;
+        "go") cmd="go run" ;;
+        "rs") cmd="cargo run --manifest-path $dir/Cargo.toml --bin";;
+        *) echo "Unsupported language: $LANG" >&2; exit 1 ;;
+    esac
+
+    local input_source
+    if [[ -p /dev/stdin ]]; then
+        input_source="/dev/stdin"
+    else
+        input_source="$input_file"
+    fi
+
+    if [[ -p /dev/stdin ]]; then
+        echo "-- $cmd $solution_file" >&2
+        $cmd "$solution_file"
+    else
+        echo "-- $cmd $solution_file < $input_file" >&2
+        $cmd "$solution_file" < "$input_file"
+    fi
+
+    if [[ "$input_type" =~ ^example([0-9]*)$ ]]; then
+        local example_num="${BASH_REMATCH[1]}"
+        local solution_check_file="$dir/solution${example_num}.txt"
+        [[ -z "$example_num" ]] && solution_check_file="$dir/solution.txt"
+
+        if [[ -f "$solution_check_file" ]]; then
+            echo "$(cat "$solution_check_file" | tail -n 1) <- (expected)" >&2
+        fi
+    fi
+
+}
+
+if [[ $# -eq 0 ]]; then
+    print_usage
+fi
+
+cmd="$1"
+shift
+
+case "$cmd" in
+    "load")
+        # Determine which day to load
+        if [[ $# -eq 0 ]]; then
+            curr_day=$(get_latest_input_day)
+            day=$(parse_day $((${curr_day:-0} + 1)))
+        else
+            day=$(parse_day "$1")
+        fi
+
+        # Create files for the day
+        dir="$YEAR/day$day"
+        mkdir -p "$dir"
+
+        # Download puzzle input (strip leading zeros for URL)
+        curl --fail --silent --cookie "session=$AOC_COOKIE" \
+             "https://adventofcode.com/$YEAR/day/$((10#$day))/input" > "$dir/input.txt" || {
+            echo "Failed to download input for day $day" >&2
+            exit 1
+        }
+
+        # Create all required files
+        touch "$dir/example.txt" 
+
+        cp "template.$LANG" "$dir/a.$LANG"
+        cp "template.$LANG" "$dir/b.$LANG"
+
+        # Show what we did
+        echo "Created $dir/input.txt"
+        echo "Created $dir/example.txt"
+        echo "Created $dir/a.$LANG"
+        echo "Created $dir/b.$LANG"
+        ;;
+
+    "run")
+        if [[ $# -eq 0 ]] || [[ "$1" =~ ^(input|example[0-9]*)$ ]]; then
+            read -r day part <<< "$(get_latest_solution)"
+            input_type="${1:-example}"
+        else
+            read -r day part <<< "$(parse_day_part "$1")"
+            input_type="${2:-example}"
+        fi
+        run_solution "$day" "$part" "$input_type"
+        ;;
+
+    *)
+        echo "Unknown command: $cmd" >&2
+        print_usage
+        ;;
+esac

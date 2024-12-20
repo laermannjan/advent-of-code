@@ -1,15 +1,11 @@
 package main
 
-import "aoc-go/utils"
-
-func part1(input utils.Input) (answer interface{}) {
-	return
-}
-
-func part2(input utils.Input) (answer interface{}) {
-	return
-}
+import (
+	"fmt"
+	"os"
+)
 
 func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	// print final result to stderr
+	fmt.Fprintln(os.Stderr, "not implemented")
 }
