@@ -2,178 +2,147 @@
 
 set -euo pipefail
 
-# Check for required environment variables
+print_usage() {
+    echo "Usage: aoc <command> [args]" >&2
+    echo "" >&2
+    echo "Commands:" >&2
+    echo "  load [day]                 - Load input for specified day (or next day if omitted)" >&2
+    echo "  run [day_part] [input]     - Run solution with specified input" >&2
+    echo "" >&2
+    echo "Run examples:" >&2
+    echo "  aoc run                    - Run latest solution with example.txt" >&2
+    echo "  aoc run input              - Run latest solution with input.txt" >&2
+    echo "  aoc run 5a                 - Run day 5 part a with example.txt" >&2
+    echo "  aoc run 5a input           - Run day 5 part a with input.txt" >&2
+    echo "  aoc run < path/to/input    - Run latest solution with an arbitary input file" >&2
+    echo "  echo '1 2 3' | aoc run 5a  - Pipe input to day 5 part a" >&2
+    exit 1
+}
+fi
+
 if [[ -z "${AOC_COOKIE:-}" ]]; then
-    echo "Error: AOC_COOKIE environment variable is not set" >&2
-    echo "Please set it to your session cookie from adventofcode.com" >&2
+    echo "Error: AOC_COOKIE environment variable not set" >&2
+    echo "Set it to your session cookie from adventofcode.com" >&2
     exit 1
 fi
 
-# Configuration
 YEAR=${AOC_YEAR:-$(date +%Y)}
-LANG=${AOC_LANG:-"py"}  # Default to Python if not specified
+LANG=${AOC_LANG:-"py"}
 
-# Helper functions
+parse_day() {
+    local raw_day="$1"
+    if [[ "$raw_day" =~ ^[0-9]+$ ]] && ((raw_day >= 1 && raw_day <= 25)); then
+        printf "%02d" "$raw_day"
+    else
+        echo "Day must be between 1 and 25" >&2
+        exit 1
+    fi
+}
+
+# Find latest day with an input file
 get_latest_input_day() {
-    local year="$1"
-    # Extract just the day number from the path using sed
-    local latest_day=$(find "$year" -type f -name "input.txt" | sort -r | head -n1 | sed -E 's/.*day([0-9]+).*/\1/')
-    # Return 0 if no day found
-    echo "${latest_day:-0}"
+    find "$YEAR" -type f -name "input.txt" | sort -r | head -n1 | sed -E 's/.*day([0-9]+).*/\1/'
 }
 
 get_latest_solution() {
-    local year="$1"
-    local lang="$2"
-    # Find latest solution file
-    local solution_path=$(find "$year" -type f -name "[ab].$lang" | sort -r | head -n1)
+    local solution_path=$(find "$YEAR" -type f -name "[ab].$LANG" | sort -r | head -n1)
     if [[ -z "$solution_path" ]]; then
-        echo "No solution files found for language $lang in year $year" >&2
+        echo "No solution files found for language $LANG in year $YEAR" >&2
         exit 1
     fi
-    # Extract day and part from path
     local day=$(echo "$solution_path" | sed -E 's/.*day([0-9]+).*/\1/')
     local part=$(echo "$solution_path" | sed -E 's/.*\/([ab])\.[^.]+/\1/')
     echo "$day $part"
 }
 
+# Parse day and part from format like "5a" -> "05 a"
 parse_day_part() {
-    local arg="$1"
-    if [[ $arg =~ ^([0-9]+)([ab])$ ]]; then
-        local day="${BASH_REMATCH[1]}"
-        local part="${BASH_REMATCH[2]}"
-        # Validate day is between 1 and 25
-        if ((day >= 1 && day <= 25)); then
-            # Pad day with zero if needed
-            printf "%02d %s" "$day" "$part"
-        else
-            echo "Day must be between 1 and 25" >&2
-            exit 1
-        fi
+    if [[ "$1" =~ ^([0-9]+)([ab])$ ]]; then
+        echo "$(parse_day "${BASH_REMATCH[1]}") ${BASH_REMATCH[2]}"
     else
-        echo "Invalid day/part format. Expected format: <day><part> (e.g., 13b)" >&2
+        echo "Invalid format. Expected: <day><part> (e.g., 5a)" >&2
         exit 1
     fi
 }
 
-
-
 run_solution() {
-    local day="$1"
-    local part="$2"
-    local input_type="$3"
-    local solution_file="$YEAR/day${day}/$part.$LANG"
-    
+    local day="$1" part="$2" input_type="$3"
+    local dir="$YEAR/day$day"
+    local input_file="$dir/$input_type.txt"
+    local solution_file="$dir/$part.$LANG"
+
     if [[ ! -f "$solution_file" ]]; then
         echo "Solution file $solution_file not found" >&2
         exit 1
     fi
 
+    if [[ ! -f "$input_file" && ! -p /dev/stdin ]]; then
+        echo "Input file $input_file not found" >&2
+        exit 1
+    fi
+
+    case "$LANG" in
+        "py") cmd="python3" ;;
+        "go") cmd="go run" ;;
+        "rs") cmd="cargo run --bin"
+        *) echo "Unsupported language: $LANG" >&2; exit 1 ;;
+    esac
+
     if [[ -p /dev/stdin ]]; then
-        # If stdin is a pipe, pass it through
-        case "$LANG" in
-            "py")
-                python3 "$solution_file"
-                ;;
-            "go")
-                go run "$solution_file"
-                ;;
-            *)
-                echo "Unsupported language: $LANG" >&2
-                exit 1
-                ;;
-        esac
+        $cmd "$solution_file"
     else
-        # Otherwise, use the specified input file
-        local input_file="$YEAR/day$day/$input_type.txt"
-        if [[ ! -f "$input_file" ]]; then
-            echo "Input file $input_file not found" >&2
-            exit 1
-        fi
-        
-        case "$LANG" in
-            "py")
-                python3 "$solution_file" < "$input_file"
-                ;;
-            "go")
-                go run "$solution_file" < "$input_file"
-                ;;
-            *)
-                echo "Unsupported language: $LANG" >&2
-                exit 1
-                ;;
-        esac
+        $cmd "$solution_file" < "$input_file"
     fi
 }
 
-# Main command handling
-if [[ $# -eq 0 ]]; then
-    echo "Usage: aoc <command> [args]" >&2
-    echo "Commands:" >&2
-    echo "  load [day]    - Load input for specified day (or next day if omitted)" >&2
-    echo "  run [day_part] [input_type] - Run solution" >&2
-    exit 1
-fi
 
 cmd="$1"
 shift
 
 case "$cmd" in
     "load")
-        day="${1:-}"  # Use parameter expansion with empty default
-        if [[ -z "$day" ]]; then
-            current_latest=$(get_latest_input_day "$YEAR")
-            day=$((current_latest + 1))
+        # Determine which day to load
+        if [[ $# -eq 0 ]]; then
+            curr_day=$(get_latest_input_day)
+            day=$(parse_day $((${curr_day:-0} + 1)))
+        else
+            day=$(parse_day "$1")
         fi
-        
-        # Validate day is between 1 and 25
-        if ! ((day >= 1 && day <= 25)); then
-            echo "Day must be between 1 and 25" >&2
-            exit 1
-        fi
-        
-        # Create day directory and files
-        dir="$YEAR/day${day}"
+
+        # Create files for the day
+        dir="$YEAR/day$day"
         mkdir -p "$dir"
-        echo "Created directory $dir"
-        
-        # Strip leading zeros for URL
-        day_num=$((10#$day))  # Force base 10 interpretation
-        
-        # Download input and create files
-        echo "Downloading input for day $day..."
-        curl --fail --silent --cookie "session=$AOC_COOKIE" "https://adventofcode.com/$YEAR/day/$day_num/input" > "$dir/input.txt" || {
+
+        # Download puzzle input (strip leading zeros for URL)
+        curl --fail --silent --cookie "session=$AOC_COOKIE" \
+             "https://adventofcode.com/$YEAR/day/$((10#$day))/input" > "$dir/input.txt" || {
             echo "Failed to download input for day $day" >&2
             exit 1
         }
-        echo "Downloaded input to $dir/input.txt"
-        
-        # Create example.txt and solution files
+
+        # Create all required files
         touch "$dir/example.txt" "$dir/a.$LANG" "$dir/b.$LANG"
-        echo "Created example.txt and solution files a.$LANG, b.$LANG"
+
+        # Show what we did
+        echo "Created $dir/input.txt"
+        echo "Created $dir/example.txt"
+        echo "Created $dir/a.$LANG"
+        echo "Created $dir/b.$LANG"
         ;;
-        
+
     "run")
-        # Determine day, part and input type based on arguments
         if [[ $# -eq 0 ]] || [[ "$1" =~ ^(input|example[0-9]*)$ ]]; then
-            # No arguments or first arg is input type - use latest solution
-            read -r day part <<< "$(get_latest_solution "$YEAR" "$LANG")"
-            input_type="${1:-input}"
+            read -r day part <<< "$(get_latest_solution)"
+            input_type="${1:-example}"
         else
-            # First arg is day_part
             read -r day part <<< "$(parse_day_part "$1")"
-            input_type="${2:-input}"
+            input_type="${2:-example}"
         fi
-        
         run_solution "$day" "$part" "$input_type"
         ;;
-        
+
     *)
         echo "Unknown command: $cmd" >&2
-        echo "Usage: aoc <command> [args]" >&2
-        echo "Commands:" >&2
-        echo "  load [day]    - Load input for specified day (or next day if omitted)" >&2
-        echo "  run [day_part] [input_type] - Run solution" >&2
-        exit 1
+        print_usage
         ;;
 esac
