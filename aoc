@@ -13,12 +13,11 @@ print_usage() {
     echo "  aoc run                    - Run latest solution with example.txt" >&2
     echo "  aoc run input              - Run latest solution with input.txt" >&2
     echo "  aoc run 5a                 - Run day 5 part a with example.txt" >&2
-    echo "  aoc run 5a input           - Run day 5 part a with input.txt" >&2
-    echo "  aoc run < path/to/input    - Run latest solution with an arbitary input file" >&2
+    echo "  aoc run 13b example2       - Run day 13 part b with example2.txt" >&2
+    echo "  aoc run < custom.txt       - Run latest solution with an arbitary input file" >&2
     echo "  echo '1 2 3' | aoc run 5a  - Pipe input to day 5 part a" >&2
     exit 1
 }
-fi
 
 if [[ -z "${AOC_COOKIE:-}" ]]; then
     echo "Error: AOC_COOKIE environment variable not set" >&2
@@ -50,7 +49,7 @@ get_latest_solution() {
         echo "No solution files found for language $LANG in year $YEAR" >&2
         exit 1
     fi
-    local day=$(echo "$solution_path" | sed -E 's/.*day([0-9]+).*/\1/')
+    local day=$(echo "$solution_path" | sed -E 's/.*day([0-9]{2}).*/\1/')
     local part=$(echo "$solution_path" | sed -E 's/.*\/([ab])\.[^.]+/\1/')
     echo "$day $part"
 }
@@ -82,19 +81,31 @@ run_solution() {
     fi
 
     case "$LANG" in
-        "py") cmd="python3" ;;
+        "py") cmd="uv run python" ;;
         "go") cmd="go run" ;;
-        "rs") cmd="cargo run --bin"
+        "rs") cmd="cargo run --bin";;
         *) echo "Unsupported language: $LANG" >&2; exit 1 ;;
     esac
 
+    local input_source
     if [[ -p /dev/stdin ]]; then
+        input_source="/dev/stdin"
+    else
+        input_source="$input_file"
+    fi
+
+    if [[ -p /dev/stdin ]]; then
+        echo "-- $cmd $solution_file" >&2
         $cmd "$solution_file"
     else
+        echo "-- $cmd $solution_file < $input_file" >&2
         $cmd "$solution_file" < "$input_file"
     fi
 }
 
+if [[ $# -eq 0 ]]; then
+    print_usage
+fi
 
 cmd="$1"
 shift
@@ -121,7 +132,10 @@ case "$cmd" in
         }
 
         # Create all required files
-        touch "$dir/example.txt" "$dir/a.$LANG" "$dir/b.$LANG"
+        touch "$dir/example.txt" 
+
+        cp "template.$LANG" "$dir/a.$LANG"
+        cp "template.$LANG" "$dir/b.$LANG"
 
         # Show what we did
         echo "Created $dir/input.txt"
