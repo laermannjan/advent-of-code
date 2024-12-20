@@ -1,7 +1,39 @@
 import inspect
 import os
+import sys
 from pathlib import Path
-from typing import Generator, Self
+from typing import Generator, Self, TextIO
+
+
+def stdin() -> TextIO:
+    if sys.stdin.isatty():
+        raise RuntimeError("no stdin")
+    return sys.stdin
+
+
+def lines() -> list[str]:
+    return stdin().read().splitlines()
+
+
+def coords() -> Generator[tuple[tuple[int, int], str]]:
+    for r, row in enumerate(lines()):
+        for c, col in enumerate(row):
+            yield (r, c), col
+
+
+def sections(gap: int = 1) -> Generator[list[str]]:
+    empty_lines = 0
+    section = []
+    for line in lines():
+        if line == "":
+            empty_lines += 1
+            if empty_lines == gap:
+                yield section
+                empty_lines = 0
+                section = []
+        else:
+            section.append(line)
+    yield section
 
 
 class Input:
