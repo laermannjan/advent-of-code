@@ -132,20 +132,25 @@ case "$cmd" in
             exit 1
         fi
         
-        # Create day directory if it doesn't exist
-        mkdir -p "$YEAR/day${day}"
+        # Create day directory and files
+        dir="$YEAR/day${day}"
+        mkdir -p "$dir"
+        echo "Created directory $dir"
         
         # Strip leading zeros for URL
         day_num=$((10#$day))  # Force base 10 interpretation
         
         # Download input and create files
-        curl --fail --silent --cookie "session=$AOC_COOKIE" "https://adventofcode.com/$YEAR/day/$day_num/input" > "$YEAR/day${day}/input.txt" || {
+        echo "Downloading input for day $day..."
+        curl --fail --silent --cookie "session=$AOC_COOKIE" "https://adventofcode.com/$YEAR/day/$day_num/input" > "$dir/input.txt" || {
             echo "Failed to download input for day $day" >&2
             exit 1
         }
+        echo "Downloaded input to $dir/input.txt"
         
         # Create example.txt and solution files
-        touch "$YEAR/day${day}/example.txt" "$YEAR/day${day}/a.$LANG" "$YEAR/day${day}/b.$LANG"
+        touch "$dir/example.txt" "$dir/a.$LANG" "$dir/b.$LANG"
+        echo "Created example.txt and solution files a.$LANG, b.$LANG"
         ;;
         
     "run")
