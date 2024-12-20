@@ -83,7 +83,7 @@ run_solution() {
     case "$LANG" in
         "py") cmd="uv run --project $YEAR python" ;;
         "go") cmd="go run" ;;
-        "rs") cmd="cargo run --bin";;
+        "rs") cmd="cargo run --manifest-path $dir/Cargo.toml --bin";;
         *) echo "Unsupported language: $LANG" >&2; exit 1 ;;
     esac
 
@@ -101,6 +101,17 @@ run_solution() {
         echo "-- $cmd $solution_file < $input_file" >&2
         $cmd "$solution_file" < "$input_file"
     fi
+
+    if [[ "$input_type" =~ ^example([0-9]*)$ ]]; then
+        local example_num="${BASH_REMATCH[1]}"
+        local solution_check_file="$dir/solution${example_num}.txt"
+        [[ -z "$example_num" ]] && solution_check_file="$dir/solution.txt"
+
+        if [[ -f "$solution_check_file" ]]; then
+            echo "$(cat "$solution_check_file" | tail -n 1) <- (expected)" >&2
+        fi
+    fi
+
 }
 
 if [[ $# -eq 0 ]]; then

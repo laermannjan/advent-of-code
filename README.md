@@ -19,6 +19,7 @@ hyperfine 'aoc run input'   # benchmark latest solution
 │   │   ├── input.txt
 │   │   ├── example.txt
 │   │   ├── example2.txt
+│   │   ├── solution2.txt
 │   │   ├── a.py
 │   │   └── b.go
 │   └── day02/
@@ -34,7 +35,6 @@ hyperfine 'aoc run input'   # benchmark latest solution
 Solution files should:
 1. Accept input via stdin
 2. Print the answer as the last line of stderr (to be able to use prints for debugging and run the files with `> /dev/null` to skip those)
-3. Be executable from any directory (see "Solution Independence" below)
 
 ## Usage
 
@@ -69,33 +69,4 @@ aoc run < custom.txt       # Run latest solution with an arbitary input file
 echo '1 2 3' | aoc run 5a  # Pipe input to day 5 part a
 ```
 
-## Solution Independence
-
-There are two recommended approaches for maintaining solution independence:
-
-1. **Self-contained Solutions**: Each solution file contains all necessary code without external dependencies. This is the simplest approach but may lead to code duplication.
-
-2. **Relative Imports**: Solutions can use utility functions by importing them relative to the solution file's location. Example:
-
-```python
-# In 2023/day1/a.py
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import helper_function
-```
-
-Both approaches ensure solutions can be run from any directory while maintaining code organization flexibility.
-
-## Why This Design?
-
-1. **Minimal Lock-in**: Solutions remain runnable without the CLI:
-   ```bash
-   python3 2023/day1/a.py < 2023/day1/input.txt
-   ```
-
-2. **Language Agnostic**: Supports any language that can read from stdin and write to stdout.
-
-3. **Flexible Testing**: Easy to test with example inputs or custom test cases.
-
-4. **Progressive Enhancement**: The CLI adds convenience without imposing requirements on solution structure.
+You can put a `solution.txt` or `solutionN.txt` that contains the answer to `example.txt` or `exampleN.txt`, which will be printed along, when running against the example input.
