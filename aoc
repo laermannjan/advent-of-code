@@ -81,7 +81,7 @@ run_solution() {
     fi
 
     case "$LANG" in
-        "py") cmd="uv run python" ;;
+        "py") cmd="uv run --project $YEAR python" ;;
         "go") cmd="go run" ;;
         "rs") cmd="cargo run --bin";;
         *) echo "Unsupported language: $LANG" >&2; exit 1 ;;
