@@ -1,0 +1,174 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Check for required environment variables
+if [[ -z "${AOC_COOKIE:-}" ]]; then
+    echo "Error: AOC_COOKIE environment variable is not set" >&2
+    echo "Please set it to your session cookie from adventofcode.com" >&2
+    exit 1
+fi
+
+# Configuration
+YEAR=${AOC_YEAR:-$(date +%Y)}
+LANG=${AOC_LANG:-"py"}  # Default to Python if not specified
+
+# Helper functions
+get_latest_input_day() {
+    local year="$1"
+    # Extract just the day number from the path using sed
+    local latest_day=$(find "$year" -type f -name "input.txt" | sort -r | head -n1 | sed -E 's/.*day([0-9]+).*/\1/')
+    # Return 0 if no day found
+    echo "${latest_day:-0}"
+}
+
+get_latest_solution() {
+    local year="$1"
+    local lang="$2"
+    # Find latest solution file
+    local solution_path=$(find "$year" -type f -name "[ab].$lang" | sort -r | head -n1)
+    if [[ -z "$solution_path" ]]; then
+        echo "No solution files found for language $lang in year $year" >&2
+        exit 1
+    fi
+    # Extract day and part from path
+    local day=$(echo "$solution_path" | sed -E 's/.*day([0-9]+).*/\1/')
+    local part=$(echo "$solution_path" | sed -E 's/.*\/([ab])\.[^.]+/\1/')
+    echo "$day $part"
+}
+
+parse_day_part() {
+    local arg="$1"
+    if [[ $arg =~ ^([0-9]+)([ab])$ ]]; then
+        local day="${BASH_REMATCH[1]}"
+        local part="${BASH_REMATCH[2]}"
+        # Validate day is between 1 and 25
+        if ((day >= 1 && day <= 25)); then
+            # Pad day with zero if needed
+            printf "%02d %s" "$day" "$part"
+        else
+            echo "Day must be between 1 and 25" >&2
+            exit 1
+        fi
+    else
+        echo "Invalid day/part format. Expected format: <day><part> (e.g., 13b)" >&2
+        exit 1
+    fi
+}
+
+
+
+run_solution() {
+    local day="$1"
+    local part="$2"
+    local input_type="$3"
+    local solution_file="$YEAR/day${day}/$part.$LANG"
+    
+    if [[ ! -f "$solution_file" ]]; then
+        echo "Solution file $solution_file not found" >&2
+        exit 1
+    fi
+
+    if [[ -p /dev/stdin ]]; then
+        # If stdin is a pipe, pass it through
+        case "$LANG" in
+            "py")
+                python3 "$solution_file"
+                ;;
+            "go")
+                go run "$solution_file"
+                ;;
+            *)
+                echo "Unsupported language: $LANG" >&2
+                exit 1
+                ;;
+        esac
+    else
+        # Otherwise, use the specified input file
+        local input_file="$YEAR/day$day/$input_type.txt"
+        if [[ ! -f "$input_file" ]]; then
+            echo "Input file $input_file not found" >&2
+            exit 1
+        fi
+        
+        case "$LANG" in
+            "py")
+                python3 "$solution_file" < "$input_file"
+                ;;
+            "go")
+                go run "$solution_file" < "$input_file"
+                ;;
+            *)
+                echo "Unsupported language: $LANG" >&2
+                exit 1
+                ;;
+        esac
+    fi
+}
+
+# Main command handling
+if [[ $# -eq 0 ]]; then
+    echo "Usage: aoc <command> [args]" >&2
+    echo "Commands:" >&2
+    echo "  load [day]    - Load input for specified day (or next day if omitted)" >&2
+    echo "  run [day_part] [input_type] - Run solution" >&2
+    exit 1
+fi
+
+cmd="$1"
+shift
+
+case "$cmd" in
+    "load")
+        day="${1:-}"  # Use parameter expansion with empty default
+        if [[ -z "$day" ]]; then
+            current_latest=$(get_latest_input_day "$YEAR")
+            day=$((current_latest + 1))
+        fi
+        
+        # Validate day is between 1 and 25
+        if ! ((day >= 1 && day <= 25)); then
+            echo "Day must be between 1 and 25" >&2
+            exit 1
+        fi
+        
+        # Create day directory if it doesn't exist
+        mkdir -p "$YEAR/day${day}"
+        
+        # Strip leading zeros for URL
+        day_num=$((10#$day))  # Force base 10 interpretation
+        
+        # Download input and create files
+        curl --fail --silent --cookie "session=$AOC_COOKIE" "https://adventofcode.com/$YEAR/day/$day_num/input" > "$YEAR/day${day}/input.txt" || {
+            echo "Failed to download input for day $day" >&2
+            exit 1
+        }
+        
+        # Create example.txt and solution files
+        touch "$YEAR/day${day}/example.txt" "$YEAR/day${day}/a.$LANG" "$YEAR/day${day}/b.$LANG"
+        ;;
+        
+    "run")
+        # Determine day, part and input type based on arguments
+        if [[ $# -eq 0 ]] || [[ "$1" =~ ^(input|example[0-9]*)$ ]]; then
+            # No arguments or first arg is input type - use latest solution
+            read -r day part <<< "$(get_latest_solution "$YEAR" "$LANG")"
+            input_type="${1:-input}"
+        else
+            # First arg is day_part
+            read -r day part <<< "$(parse_day_part "$1")"
+            input_type="${2:-input}"
+        fi
+        
+        run_solution "$day" "$part" "$input_type"
+        ;;
+        
+    *)
+        echo "Unknown command: $cmd" >&2
+        echo "Usage: aoc <command> [args]" >&2
+        echo "Commands:" >&2
+        echo "  load [day]    - Load input for specified day (or next day if omitted)" >&2
+        echo "  run [day_part] [input_type] - Run solution" >&2
+        exit 1
+        ;;
+esac
