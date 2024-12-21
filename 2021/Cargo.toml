@@ -1,0 +1,57 @@
+[package]
+name = "aoc-2021"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name="utils"
+path="../utils/lib.rs"
+
+[dependencies]
+clap = { version = "4.4.11", features = ["derive"] }
+color-eyre = "0.6.2"
+id_tree = "1.8.0"
+itertools = "0.10.5"
+nom = "7.1.1"
+
+[[bin]]
+name = "day01-a"
+path = "day01/a.rs"
+[[bin]]
+name = "day01-b"
+path = "day01/b.rs"
+
+[[bin]]
+name = "day02-a"
+path = "day02/a.rs"
+[[bin]]
+name = "day02-b"
+path = "day02/b.rs"
+
+[[bin]]
+name = "day03-a"
+path = "day03/a.rs"
+[[bin]]
+name = "day03-b"
+path = "day03/b.rs"
+
+[[bin]]
+name = "day04-a"
+path = "day04/a.rs"
+[[bin]]
+name = "day04-b"
+path = "day04/b.rs"
+
+[[bin]]
+name = "day05-a"
+path = "day05/a.rs"
+[[bin]]
+name = "day05-b"
+path = "day05/b.rs"
+
+[[bin]]
+name = "day06-a"
+path = "day06/a.rs"
+[[bin]]
+name = "day06-b"
+path = "day06/b.rs"

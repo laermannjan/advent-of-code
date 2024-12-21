@@ -81,9 +81,9 @@ run_solution() {
     fi
 
     case "$LANG" in
-        "py") cmd="uv run --project $YEAR python" ;;
-        "go") cmd="go run" ;;
-        "rs") cmd="cargo run --manifest-path $dir/Cargo.toml --bin";;
+        "py") cmd="uv run --project $YEAR python $solution_file" ;;
+        "go") cmd="go run $solution_file" ;;
+        "rs") cmd="cargo run --manifest-path $YEAR/Cargo.toml --bin day$day-$part";;
         *) echo "Unsupported language: $LANG" >&2; exit 1 ;;
     esac
 
@@ -95,11 +95,11 @@ run_solution() {
     fi
 
     if [[ -p /dev/stdin ]]; then
-        echo "-- $cmd $solution_file" >&2
-        $cmd "$solution_file"
+        echo "-- $cmd" >&2
+        $cmd
     else
-        echo "-- $cmd $solution_file < $input_file" >&2
-        $cmd "$solution_file" < "$input_file"
+        echo "-- $cmd < $input_file" >&2
+        $cmd < "$input_file"
     fi
 
     if [[ "$input_type" =~ ^example([0-9]*)$ ]]; then
@@ -112,6 +112,31 @@ run_solution() {
         fi
     fi
 
+}
+
+add_bin_entry() {
+    local day="$1"   # e.g., "01"
+    local part="$2"  # e.g., "a"
+    local year="$3"  # e.g., "2021"
+
+    local cargo_toml_path="$year/Cargo.toml"
+
+    # The binary name and the path in which your .rs file will live
+    local bin_name="day${day}-${part}"   # e.g., "day01-a"
+    local bin_path="day${day}/${part}.rs" # e.g., "day01/a.rs"
+
+    # Check if there's already a [[bin]] with this name
+    if ! grep -q "name\s*=\s*\"${bin_name}\"" "$cargo_toml_path" 2>/dev/null; then
+        echo "Appending a new [[bin]] entry for $bin_name to $cargo_toml_path"
+        cat <<EOF >> "$cargo_toml_path"
+
+[[bin]]
+name = "$bin_name"
+path = "$bin_path"
+EOF
+    else
+        echo "Binary $bin_name already present in $cargo_toml_path. Skipping."
+    fi
 }
 
 if [[ $# -eq 0 ]]; then
@@ -147,6 +172,12 @@ case "$cmd" in
 
         cp "template.$LANG" "$dir/a.$LANG"
         cp "template.$LANG" "$dir/b.$LANG"
+
+        if [[ "$LANG" == "rs" ]]; then
+            # add cargo bin entries
+            add_bin_entry "$day" "a" "$YEAR"
+            add_bin_entry "$day" "b" "$YEAR"
+        fi
 
         # Show what we did
         echo "Created $dir/input.txt"
