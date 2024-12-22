@@ -1,8 +1,9 @@
 package main
 
 import (
-	"aoc-go/utils"
-	"log"
+	"fmt"
+	"lj/utils"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -12,40 +13,10 @@ type option struct {
 	right string
 }
 
-func part1(input utils.Input) interface{} {
-	lines := input.LineSlice()
-	instructions := []rune(lines[0])
-
-	network := map[string]option{}
-
-	re := regexp.MustCompile(`(...) = \((...), (...)\)`)
-
-	for _, line := range lines[2:] {
-		match := re.FindStringSubmatch(line)
-		network[match[1]] = option{left: match[2], right: match[3]}
-	}
-
-	current := "AAA"
-
-	i := 0
-	for current != "ZZZ" {
-		inst := instructions[i%len(instructions)]
-
-		switch inst {
-		case 'L':
-			current = network[current].left
-		case 'R':
-			current = network[current].right
-		}
-		log.Println("step:", i, "inst:", string(inst), "->", current)
-
-		i++
-	}
-	return i
-}
-
 // this doesn't work, it will take too long to simulate all the paths
-func part2_old(input utils.Input) interface{} {
+func main_old() {
+	input := utils.NewStdinInput()
+
 	lines := input.LineSlice()
 	instructions := []rune(lines[0])
 
@@ -78,11 +49,11 @@ func part2_old(input utils.Input) interface{} {
 			done = done && strings.HasSuffix(currents[c], "Z")
 		}
 
-		log.Println("step:", i, "inst:", string(inst), "->", currents)
+		fmt.Println("step:", i, "inst:", string(inst), "->", currents)
 
 		i++
 	}
-	return i
+	fmt.Fprintln(os.Stderr, i)
 }
 
 // Each starting node (..A) maps to a single destination node (..Z)
@@ -95,7 +66,9 @@ func part2_old(input utils.Input) interface{} {
 // the stable frequency was simply an assumption after observing this
 // on the example input and printing out the first few cycles on the input
 // it worked out, but couldn't get this from the problem description
-func part2(input utils.Input) interface{} {
+func main() {
+	input := utils.NewStdinInput()
+
 	lines := input.LineSlice()
 	instructions := []rune(lines[0])
 
@@ -118,7 +91,7 @@ func part2(input utils.Input) interface{} {
 		i := 0
 		var cycle_length int
 
-		log.Println("current:", current)
+		fmt.Println("current:", current)
 
 		for {
 			inst := instructions[i%len(instructions)]
@@ -128,11 +101,11 @@ func part2(input utils.Input) interface{} {
 			case 'R':
 				current = network[current].right
 			}
-			log.Println("step:", i, "inst:", string(inst), "->", current)
+			fmt.Println("step:", i, "inst:", string(inst), "->", current)
 			cycle_length++
 			i++
 			if strings.HasSuffix(current, "Z") {
-				log.Println("found suffix in", current)
+				fmt.Println("found suffix in", current)
 				if first_z == "" {
 					first_z = current
 					cycle_length = 0
@@ -144,16 +117,12 @@ func part2(input utils.Input) interface{} {
 		}
 		cycles = append(cycles, cycle_length)
 	}
-	log.Println("cycles:", cycles)
+	fmt.Println("cycles:", cycles)
 	// for c, next := range cycles[1:] {
 	// 	prev := cycles[c]
 	//
 	// }
 	lcm := utils.LCM(cycles...)
 
-	return lcm
-}
-
-func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	fmt.Fprintln(os.Stderr, lcm)
 }

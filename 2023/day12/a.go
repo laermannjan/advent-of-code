@@ -1,9 +1,9 @@
 package main
 
 import (
-	"aoc-go/utils"
 	"fmt"
-	"log"
+	"lj/utils"
+	"os"
 	"strings"
 )
 
@@ -66,7 +66,8 @@ func counts(cfg string, groups []int, cache map[key]int) int {
 	return res
 }
 
-func part1(input utils.Input) (answer interface{}) {
+func main() {
+	input := utils.NewStdinInput()
 	total_combos := 0
 	for _, line := range input.LineSlice() {
 		parts := strings.Split(line, " ")
@@ -76,8 +77,8 @@ func part1(input utils.Input) (answer interface{}) {
 			groups = append(groups, utils.Atoi(g))
 		}
 
-		log.Println()
-		log.Println(config, groups)
+		fmt.Println()
+		fmt.Println(config, groups)
 	combo_loop:
 		for _, combo := range combinations(config) {
 			var combo_groups []int
@@ -93,41 +94,11 @@ func part1(input utils.Input) (answer interface{}) {
 						continue combo_loop
 					}
 				}
-				log.Println("combo:", combo, combo_groups)
+				fmt.Println("combo:", combo, combo_groups)
 				total_combos++
 			}
 		}
 
 	}
-	return total_combos
-}
-
-func part2(input utils.Input) (answer interface{}) {
-	total_combos := 0
-	cache := make(map[key]int)
-	for _, line := range input.LineSlice() {
-		parts := strings.Split(line, " ")
-		config := parts[0]
-		var groups []int
-		for _, g := range strings.Split(parts[1], ",") {
-			groups = append(groups, utils.Atoi(g))
-		}
-
-		log.Println()
-		log.Println(config, groups)
-
-		config = config + "?" + config + "?" + config + "?" + config + "?" + config
-		groups = append(groups, append(groups, append(groups, append(groups, groups...)...)...)...)
-
-		log.Println(config, groups)
-
-		combos := counts(config, groups, cache)
-		log.Println("combos:", combos)
-		total_combos += combos
-	}
-	return total_combos
-}
-
-func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	fmt.Fprintln(os.Stderr, total_combos)
 }

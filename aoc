@@ -76,13 +76,17 @@ run_solution() {
     fi
 
     if [[ ! -f "$input_file" && ! -p /dev/stdin ]]; then
-        echo "Input file $input_file not found" >&2
-        exit 1
+        if [[ "$input_type" =~ ^example$ && -f "$dir/$input_type$part.txt" ]]; then
+            input_file="$dir/$input_type$part.txt"
+        else
+            echo "Input file $input_file not found" >&2
+            exit 1
+        fi
     fi
 
     case "$LANG" in
         "py") cmd="uv run --project $YEAR python $solution_file" ;;
-        "go") cmd="go run $solution_file" ;;
+        "go") cmd="go run -C $YEAR day$day/$part.$LANG" ;;
         "rs") cmd="cargo run --manifest-path $YEAR/Cargo.toml --bin day$day-$part";;
         *) echo "Unsupported language: $LANG" >&2; exit 1 ;;
     esac
@@ -102,7 +106,7 @@ run_solution() {
         $cmd < "$input_file"
     fi
 
-    if [[ "$input_type" =~ ^example([0-9]*)$ ]]; then
+    if [[ "$input_type" =~ ^example([ab]?[0-9]*)$ ]]; then
         local example_num="${BASH_REMATCH[1]}"
         local solution_check_file="$dir/solution${example_num}.txt"
         [[ -z "$example_num" ]] && solution_check_file="$dir/solution.txt"
@@ -187,7 +191,7 @@ case "$cmd" in
         ;;
 
     "run")
-        if [[ $# -eq 0 ]] || [[ "$1" =~ ^(input|example[0-9]*)$ ]]; then
+        if [[ $# -eq 0 ]] || [[ "$1" =~ ^(input|example[ab]?[0-9]*)$ ]]; then
             read -r day part <<< "$(get_latest_solution)"
             input_type="${1:-example}"
         else

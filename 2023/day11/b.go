@@ -1,8 +1,9 @@
 package main
 
 import (
-	"aoc-go/utils"
-	"log"
+	"fmt"
+	"lj/utils"
+	"os"
 )
 
 type position struct {
@@ -21,7 +22,7 @@ func compute_galaxy_dists(input utils.Input, expansion_factor int) int {
 		}
 	}
 
-	log.Println("found", len(galaxies), "galaxies")
+	fmt.Println("found", len(galaxies), "galaxies")
 	total_dist := 0
 
 	for i := 0; i < len(galaxies)-1; i++ {
@@ -54,7 +55,7 @@ func compute_galaxy_dists(input utils.Input, expansion_factor int) int {
 				}
 				cols += expansion_factor - 1
 			}
-			log.Println("distance between", i+1, "and", j+1, ":", rows+cols, "(", rows, cols, ")")
+			fmt.Println("distance between", i+1, "and", j+1, ":", rows+cols, "(", rows, cols, ")")
 			total_dist += rows + cols
 
 		}
@@ -62,14 +63,7 @@ func compute_galaxy_dists(input utils.Input, expansion_factor int) int {
 	return total_dist
 }
 
-func part1(input utils.Input) (answer interface{}) {
-	return compute_galaxy_dists(input, 2)
-}
-
-func part2(input utils.Input) (answer interface{}) {
-	return compute_galaxy_dists(input, 1e6)
-}
-
 func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	input := utils.NewStdinInput()
+	fmt.Fprintln(os.Stderr, compute_galaxy_dists(input, 1e6))
 }

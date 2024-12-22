@@ -1,8 +1,9 @@
 package main
 
 import (
-	"aoc-go/utils"
-	"log"
+	"fmt"
+	"lj/utils"
+	"os"
 	"strings"
 )
 
@@ -14,15 +15,6 @@ func hash(input string) int {
 		cur %= 256
 	}
 	return cur
-}
-
-func part1(input utils.Input) (answer interface{}) {
-	codes := strings.Split(input.LineSlice()[0], ",")
-	total := 0
-	for _, code := range codes {
-		total += hash(code)
-	}
-	return total
 }
 
 type Lens struct {
@@ -57,13 +49,14 @@ func (b *Box) focusPower(boxId int) int {
 	answer := 0
 	for l, lens := range b.lenses {
 		lens_power := (boxId + 1) * (l + 1) * lens.focal
-		log.Println("lens", l, "power", lens_power)
+		fmt.Println("lens", l, "power", lens_power)
 		answer += lens_power
 	}
 	return answer
 }
 
-func part2(input utils.Input) (answer interface{}) {
+func main() {
+	input := utils.NewStdinInput()
 	instructions := strings.Split(input.LineSlice()[0], ",")
 	boxes := [256]Box{}
 	for _, inst_str := range instructions {
@@ -73,7 +66,7 @@ func part2(input utils.Input) (answer interface{}) {
 			box := hash(label)
 			boxes[box].remove(Lens{label: label})
 
-			log.Println("after", inst_str, boxes[box])
+			fmt.Println("after", inst_str, boxes[box])
 		} else {
 			inst := []rune(inst_str)
 			label := string(inst[:len(inst)-2])
@@ -81,7 +74,7 @@ func part2(input utils.Input) (answer interface{}) {
 			focal := utils.Atoi(string(inst[len(inst)-1]))
 			boxes[box].insert(Lens{label: label, focal: focal})
 
-			log.Println("after", inst_str, boxes[box])
+			fmt.Println("after", inst_str, boxes[box])
 		}
 	}
 
@@ -90,9 +83,5 @@ func part2(input utils.Input) (answer interface{}) {
 		total += box.focusPower(b)
 	}
 
-	return total
-}
-
-func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	fmt.Fprintln(os.Stderr, total)
 }

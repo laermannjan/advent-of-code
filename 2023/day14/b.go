@@ -1,8 +1,9 @@
 package main
 
 import (
-	"aoc-go/utils"
-	"log"
+	"fmt"
+	"lj/utils"
+	"os"
 	"strings"
 )
 
@@ -66,23 +67,6 @@ func tilt(dish [][]rune) [][]rune {
 	return shifted
 }
 
-func part1(input utils.Input) (answer interface{}) {
-	var dish [][]rune
-	for _, row := range input.LineSlice() {
-		dish = append(dish, []rune(row))
-	}
-
-	shifted := tilt(dish)
-	load := computeLoad(shifted)
-
-	log.Println("original\tshifted north")
-	for i := 0; i < len(dish); i++ {
-		log.Println(string(dish[i]), "\t", string(shifted[i]))
-	}
-
-	return load
-}
-
 func hash(dish [][]rune) string {
 	var s []string
 	for _, row := range dish {
@@ -91,7 +75,9 @@ func hash(dish [][]rune) string {
 	return strings.Join(s, "\n")
 }
 
-func part2(input utils.Input) (answer interface{}) {
+func main() {
+	input := utils.NewStdinInput()
+
 	target_cycle := 1_000_000_000
 	var dish [][]rune
 	for _, row := range input.LineSlice() {
@@ -109,16 +95,16 @@ func part2(input utils.Input) (answer interface{}) {
 			// old_dish := dish
 			shifted = tilt(dish)
 			dish = rotate(shifted)
-			// log.Println("\noriginal\tshifted north\trotated")
+			// fmt.Println("\noriginal\tshifted north\trotated")
 			// for i := 0; i < len(dish); i++ {
-			// 	log.Println(string(old_dish[i]), "\t", string(shifted[i]), "\t", string(dish[i]))
+			// 	fmt.Println(string(old_dish[i]), "\t", string(shifted[i]), "\t", string(dish[i]))
 			// }
 
 		}
 		load = computeLoad(dish)
-		log.Println("After", cycle, "cycle", "load", load)
+		fmt.Println("After", cycle, "cycle", "load", load)
 		for i := 0; i < len(dish); i++ {
-			log.Println(string(string(dish[i])))
+			fmt.Println(string(string(dish[i])))
 		}
 		if v, ok := seen[hash(shifted)]; ok && !jumped {
 			length := cycle - v
@@ -129,9 +115,5 @@ func part2(input utils.Input) (answer interface{}) {
 
 	}
 	load = computeLoad(dish)
-	return load
-}
-
-func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	fmt.Fprintln(os.Stderr, load)
 }

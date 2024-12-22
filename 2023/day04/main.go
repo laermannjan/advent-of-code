@@ -2,7 +2,7 @@ package main
 
 import (
 	"aoc-go/utils"
-	"log"
+	"fmt"
 	"slices"
 	"strings"
 )
@@ -15,16 +15,16 @@ func part1(input utils.Input) interface{} {
 		chosen := strings.Fields(numbers[1])
 
 		score := 1
-		log.Print(winners, chosen)
+		fmt.Print(winners, chosen)
 		for _, n := range chosen {
 			if slices.Contains(winners, n) {
 				score <<= 1
-				log.Println("score(shift):", score, n)
+				fmt.Println("score(shift):", score, n)
 
 			}
 		}
 
-		log.Println("score:", score)
+		fmt.Println("score:", score)
 		// we started with score=1 instead of 0 in order to bitshift, so shift back
 		total_score += score >> 1
 	}
@@ -43,7 +43,7 @@ func part2(input utils.Input) interface{} {
 		chosen := strings.Fields(numbers[1])
 
 		card_count[card] += 1
-		log.Println("Card:", card, winners, chosen, "copies:", card_count[card])
+		fmt.Println("Card:", card, winners, chosen, "copies:", card_count[card])
 
 		matches := 0
 		for _, n := range chosen {

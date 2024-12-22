@@ -1,96 +1,13 @@
 package main
 
 import (
-	"aoc-go/utils"
 	"cmp"
 	"fmt"
-	"log"
-	"math"
+	"lj/utils"
+	"os"
 	"slices"
 	"strings"
-	"time"
 )
-
-func part1_old(input utils.Input) interface{} {
-	sections := input.SectionSlice()
-	seeds := strings.Fields(strings.Split(sections[0], ":")[1])
-	locations := []int{}
-
-	src_dest_maps := []map[Interval]int{}
-
-	for _, section := range sections[1:] {
-		src_dest_map := map[Interval]int{}
-		for _, mapping := range strings.Split(section, "\n")[1:] {
-
-			fields := strings.Fields(mapping)
-			dest := utils.Atoi(fields[0])
-			source := utils.Atoi(fields[1])
-			length := utils.Atoi(fields[2])
-
-			src_dest_map[Interval{source, source + length}] = dest - source
-		}
-		src_dest_maps = append(src_dest_maps, src_dest_map)
-	}
-
-	for _, seed := range seeds {
-		n := utils.Atoi(seed)
-		log.Println("seed:", n)
-		for _, cur_map := range src_dest_maps {
-			for cur_range, shift := range cur_map {
-				if cur_range.start <= n && n <= cur_range.end {
-					n += shift
-					break
-				}
-			}
-
-			log.Println("mapped to:", n)
-		}
-		locations = append(locations, n)
-
-	}
-
-	min_loc := math.MaxInt
-	for _, loc := range locations {
-		if loc < min_loc {
-			min_loc = loc
-		}
-	}
-
-	return min_loc
-}
-
-func part1(input utils.Input) interface{} {
-	start := time.Now()
-	sections := input.SectionSlice()
-	seeds := parseSeeds(sections[0])
-	log.Println("Initial seeds:", seeds)
-
-	maps := []Map{}
-	for _, section := range sections[1:] {
-		maps = append(maps, parseMap(section))
-	}
-
-	for _, m := range maps {
-		log.Println("\n\nMap:", m)
-		for i, seed := range seeds {
-			log.Println("\nseed:", seed)
-			for _, rule := range m.rules {
-				log.Print("rule:", rule)
-				if rule.start <= seed && seed < rule.end {
-					seeds[i] += rule.offset
-					log.Println("converting:", seed, "->", seeds[i])
-					break
-				} else {
-					log.Println("no overlap")
-				}
-			}
-		}
-
-	}
-	fmt.Println("took:", time.Since(start))
-
-	return slices.Min(seeds)
-}
 
 type Interval struct {
 	start int
@@ -132,7 +49,8 @@ func (m Map) String() string {
 func parseSeeds(str string) (seeds []int) {
 	str, found := strings.CutPrefix(str, "seeds:")
 	if !found {
-		log.Fatal("could not parse seeds")
+		fmt.Fprintln(os.Stderr, "could not parse seeds")
+		os.Exit(1)
 	}
 	for _, s := range strings.Fields(str) {
 		seeds = append(seeds, utils.Atoi(s))
@@ -143,7 +61,8 @@ func parseSeeds(str string) (seeds []int) {
 func parseSeedRanges(str string) (seeds []Interval) {
 	str, found := strings.CutPrefix(str, "seeds:")
 	if !found {
-		log.Fatal("could not parse seed ranges")
+		fmt.Fprintln(os.Stderr, "could not parse seed ranges")
+		os.Exit(1)
 	}
 
 	fields := strings.Fields(str)
@@ -178,12 +97,12 @@ func parseMap(s string) (m Map) {
 	return
 }
 
-func part2(input utils.Input) interface{} {
-	start := time.Now()
+func main() {
+	input := utils.NewStdinInput()
 
 	sections := input.SectionSlice()
 	seeds := parseSeedRanges(sections[0])
-	log.Println("Initial seeds:", seeds)
+	fmt.Println("Initial seeds:", seeds)
 
 	maps := []Map{}
 	for _, section := range sections[1:] {
@@ -191,33 +110,33 @@ func part2(input utils.Input) interface{} {
 	}
 
 	for _, m := range maps {
-		log.Println("\n\nMap:", m)
-		log.Println("seeds:", seeds)
+		fmt.Println("\n\nMap:", m)
+		fmt.Println("seeds:", seeds)
 		converted_seeds := []Interval{}
 		for _, seed := range seeds {
-			log.Println()
-			log.Println("seed:", seed)
+			fmt.Println()
+			fmt.Println("seed:", seed)
 			for _, rule := range m.rules {
-				log.Println("\nrule", rule)
+				fmt.Println("\nrule", rule)
 
 				if seed.start > rule.end || rule.start > seed.end {
-					log.Println("no overlap")
+					fmt.Println("no overlap")
 					continue
 				}
 
 				if seed.start < rule.start {
 					passthrough_seed_part := Interval{start: seed.start, end: rule.start}
-					log.Println("seed.start < rule.start; passthrough:", passthrough_seed_part)
+					fmt.Println("seed.start < rule.start; passthrough:", passthrough_seed_part)
 
 					converted_seeds = append(converted_seeds, passthrough_seed_part)
 					seed.start = rule.start
-					log.Println("remaining seed:", seed)
+					fmt.Println("remaining seed:", seed)
 				}
 
 				if seed.end <= rule.end {
 					// seed fits into rule interval
 					converted_seed := seed.convert(rule.offset)
-					log.Println("converting (->seed.end):", seed, "->", converted_seed)
+					fmt.Println("converting (->seed.end):", seed, "->", converted_seed)
 					converted_seeds = append(converted_seeds, converted_seed)
 					seed.start = seed.end
 					break
@@ -226,21 +145,21 @@ func part2(input utils.Input) interface{} {
 					seed_part := Interval{start: seed.start, end: rule.end}
 					converted_seed_part := seed_part.convert(rule.offset)
 					converted_seeds = append(converted_seeds, converted_seed_part)
-					log.Println("converting (->rule.end):", seed_part, "->", converted_seed_part)
+					fmt.Println("converting (->rule.end):", seed_part, "->", converted_seed_part)
 
 					seed = Interval{start: rule.end, end: seed.end}
-					log.Println("reminaing seed:", seed)
+					fmt.Println("reminaing seed:", seed)
 				}
 			}
 			if seed.start < seed.end {
-				log.Println("no rule matched; passthrough:", seed)
+				fmt.Println("no rule matched; passthrough:", seed)
 				converted_seeds = append(converted_seeds, seed)
 			}
 		}
 
-		log.Println("\nconverted seeds:", converted_seeds)
+		fmt.Println("\nconverted seeds:", converted_seeds)
 		slices.SortFunc(converted_seeds, func(a, b Interval) int { return cmp.Compare(a.start, b.start) })
-		log.Println("sorted seeds:", converted_seeds)
+		fmt.Println("sorted seeds:", converted_seeds)
 
 		merged_seeds := []Interval{}
 		current := converted_seeds[0]
@@ -254,14 +173,9 @@ func part2(input utils.Input) interface{} {
 			}
 		}
 		merged_seeds = append(merged_seeds, current)
-		log.Println("merged seeds:", merged_seeds)
+		fmt.Println("merged seeds:", merged_seeds)
 
 		seeds = merged_seeds
 	}
-	fmt.Println("took:", time.Since(start))
-	return seeds[0].start
-}
-
-func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	fmt.Fprintln(os.Stderr, seeds[0].start)
 }

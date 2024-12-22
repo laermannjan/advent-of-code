@@ -1,8 +1,9 @@
 package main
 
 import (
-	"aoc-go/utils"
-	"log"
+	"fmt"
+	"lj/utils"
+	"os"
 	"strings"
 )
 
@@ -39,9 +40,9 @@ row_loop:
 		for i := 0; 0 <= r-1-i && r+i < len(pattern); i++ {
 			eq, withSmudge := equal(pattern[r-1-i], pattern[r+i])
 
-			log.Printf("comparing\n%v\n%v\neq=%v, withSmudge=%v, smudge_used=%v, allow_smudge=%v", strings.Join(pattern[r-1-i:r], "\n"), strings.Join(pattern[r:r+i+1], "\n"), eq, withSmudge, smudge_used, allowSmudge)
+			fmt.Printf("comparing\n%v\n%v\neq=%v, withSmudge=%v, smudge_used=%v, allow_smudge=%v", strings.Join(pattern[r-1-i:r], "\n"), strings.Join(pattern[r:r+i+1], "\n"), eq, withSmudge, smudge_used, allowSmudge)
 			if !(eq && (!withSmudge || (allowSmudge && !smudge_used))) {
-				log.Println("NO MATCH, continue\n")
+				fmt.Println("NO MATCH, continue\n")
 				continue row_loop
 			}
 			if eq && withSmudge && !smudge_used {
@@ -51,49 +52,28 @@ row_loop:
 		if !allowSmudge || smudge_used {
 			return r
 		}
-		log.Printf("no smudge :( - try next")
+		fmt.Printf("no smudge :( - try next")
 	}
 	return 0
 }
 
-func part1(input utils.Input) (answer interface{}) {
+func main() {
+	input := utils.NewStdinInput()
+
 	total := 0
 	for pattern := range input.Sections() {
-		log.Printf("\n%v", pattern)
-		p := strings.Split(pattern, "\n")
-		rows_above := findPointOfReflection(p, false)
-		if rows_above > 0 {
-			log.Println("point of reflection (rows):", rows_above)
-		}
-		cols_before := findPointOfReflection(transpose(p), false)
-		if cols_before > 0 {
-			log.Println("point of reflection (cols):", cols_before)
-		}
-
-		total += 100*rows_above + cols_before
-	}
-	return total
-}
-
-func part2(input utils.Input) (answer interface{}) {
-	total := 0
-	for pattern := range input.Sections() {
-		log.Printf("\n%v", pattern)
+		fmt.Printf("\n%v", pattern)
 		p := strings.Split(pattern, "\n")
 		rows_above := findPointOfReflection(p, true)
 		if rows_above > 0 {
-			log.Println("point of reflection (rows):", rows_above)
+			fmt.Println("point of reflection (rows):", rows_above)
 		}
 		cols_before := findPointOfReflection(transpose(p), true)
 		if cols_before > 0 {
-			log.Println("point of reflection (cols):", cols_before)
+			fmt.Println("point of reflection (cols):", cols_before)
 		}
 
 		total += 100*rows_above + cols_before
 	}
-	return total
-}
-
-func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	fmt.Fprintln(os.Stderr, total)
 }

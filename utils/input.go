@@ -2,9 +2,7 @@ package utils
 
 import (
 	"bufio"
-	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -16,90 +14,76 @@ type Input interface {
 	SectionSlice() []string
 }
 
-type FileInput struct {
-	FilePath string
+type StdinInput struct {
+	lines []string
 }
 
-func (fi *FileInput) Lines() <-chan string {
-	file, err := os.Open(fi.FilePath)
-	if err != nil {
-		panic(err)
+func NewStdinInput() *StdinInput {
+	scanner := bufio.NewScanner(os.Stdin)
+	var lines []string
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
 	}
-	// defer file.Close()  // TODO: why do I not need to close this, if I do nothing gets through the channel
+	return &StdinInput{lines: lines}
+}
 
-	scanner := bufio.NewScanner(file)
+func (si *StdinInput) Lines() <-chan string {
 	ch := make(chan string)
-
 	go func() {
 		defer close(ch)
-		for scanner.Scan() {
-			ch <- scanner.Text()
+		for _, line := range si.lines {
+			ch <- line
 		}
 	}()
-
 	return ch
 }
 
-func (fi *FileInput) LineSlice() []string {
-	line_slice := []string{}
-	for line := range fi.Lines() {
-		line_slice = append(line_slice, line)
-	}
-	return line_slice
+func (si *StdinInput) LineSlice() []string {
+	return si.lines
 }
 
-func (fi *FileInput) RunesSlice() [][]rune {
-	runes_slice := [][]rune{}
-	for line := range fi.Lines() {
-		runes_slice = append(runes_slice, []rune(line))
+func (si *StdinInput) RunesSlice() [][]rune {
+	var runes [][]rune
+	for _, line := range si.lines {
+		runes = append(runes, []rune(line))
 	}
-	return runes_slice
+	return runes
 }
 
-func (fi *FileInput) Sections() <-chan string {
-	file, err := os.Open(fi.FilePath)
-	if err != nil {
-		panic(err)
-	}
+func (si *StdinInput) Sections() <-chan string {
+	return sectionsFromLines(si.Lines())
+}
 
-	scanner := bufio.NewScanner(file)
+func (si *StdinInput) SectionSlice() []string {
+	return collectSections(si.Sections())
+}
+
+func collectSections(ch <-chan string) []string {
+	var sections []string
+	for section := range ch {
+		sections = append(sections, section)
+	}
+	return sections
+}
+
+func sectionsFromLines(lines <-chan string) <-chan string {
 	ch := make(chan string)
-
 	go func() {
-		// defer file.Close()  // TODO: should I do this, or not?
 		defer close(ch)
-		var section string
-		for scanner.Scan() {
-			line := scanner.Text()
-			if line == "" { // match empty line
-				ch <- strings.TrimSpace(section)
-				section = ""
+		var section strings.Builder
+		for line := range lines {
+			if line == "" {
+				if section.Len() > 0 {
+					ch <- strings.TrimSpace(section.String())
+					section.Reset()
+				}
 			} else {
-				section += line + "\n"
+				section.WriteString(line + "\n")
 			}
 		}
-		if len(section) > 0 {
-			ch <- strings.TrimSpace(section)
+		if section.Len() > 0 {
+			ch <- strings.TrimSpace(section.String())
 		}
 	}()
-
 	return ch
-}
-
-func (fi *FileInput) SectionSlice() []string {
-	para_slice := []string{}
-	for para := range fi.Sections() {
-		para_slice = append(para_slice, para)
-	}
-	return para_slice
-}
-
-func FromInputFile(year int, day int) Input {
-	path := filepath.Join(os.Getenv("AOC_DATA_ROOT"), fmt.Sprintf("%d", year), "inputs", fmt.Sprintf("%02d", day)+".txt")
-	return &FileInput{FilePath: path}
-}
-
-func FromExampleFile(year int, day int, part string) Input {
-	path := filepath.Join(os.Getenv("AOC_DATA_ROOT"), fmt.Sprintf("%d", year), "examples", fmt.Sprintf("%02d-", day)+part+".txt")
-	return &FileInput{FilePath: path}
 }

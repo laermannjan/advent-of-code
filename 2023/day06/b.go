@@ -1,9 +1,10 @@
 package main
 
 import (
-	"aoc-go/utils"
-	"log"
+	"fmt"
+	"lj/utils"
 	"math"
+	"os"
 	"strings"
 )
 
@@ -35,36 +36,9 @@ func parseRaces(input []string) (races []Race) {
 // 0 = ts - s^2 - d
 // 0 = s^2 - ts + d  // pq-formula to solve quadratic eq. (x^2 + px + q = 0 => -(p/2) +- sqrt([p/2]^2 - q))
 // zero points are lower and upper bounds (non-inclusive) for s, in which we beat the race record
-func part1(input utils.Input) interface{} {
-	races := parseRaces(input.LineSlice())
+func main() {
+	input := utils.NewStdinInput()
 
-	possible_wins := 0
-	for _, r := range races {
-		t := float64(r.time)
-		d := float64(r.record)
-
-		// zero points
-		zp1 := t/2 - math.Sqrt(math.Pow(t/2, 2)-float64(d))
-		zp2 := t/2 + math.Sqrt(math.Pow(t/2, 2)-float64(d))
-
-		min_s := int(math.Ceil(zp1 + 1e-12))  // adding some margin to round up if we exactly reach d
-		max_s := int(math.Floor(zp2 - 1e-12)) // subtracting some margin to round down ...
-
-		log.Printf("{%.2f %.2f} -> {%d %d}", zp1, zp2, min_s, max_s)
-		wins := max_s - min_s + 1
-		log.Println("race:", r, "possible wins:", wins)
-
-		if possible_wins == 0 {
-			possible_wins = wins
-		} else {
-			possible_wins *= wins
-		}
-	}
-
-	return possible_wins
-}
-
-func part2(input utils.Input) interface{} {
 	lines := input.LineSlice()
 	t_str, _ := strings.CutPrefix(lines[0], "Time:")
 	t := float64(utils.Atoi(strings.Join(strings.Fields(t_str), "")))
@@ -78,12 +52,8 @@ func part2(input utils.Input) interface{} {
 	min_s := int(math.Ceil(zp1 + 1e-12))  // adding some margin to round up if we exactly reach d
 	max_s := int(math.Floor(zp2 - 1e-12)) // subtracting some margin to round down ...
 
-	log.Printf("{%.2f %.2f} -> {%d %d}", zp1, zp2, min_s, max_s)
+	fmt.Printf("{%.2f %.2f} -> {%d %d}", zp1, zp2, min_s, max_s)
 	wins := max_s - min_s + 1
 
-	return wins
-}
-
-func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	fmt.Fprintln(os.Stderr, wins)
 }

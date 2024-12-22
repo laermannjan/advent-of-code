@@ -1,8 +1,9 @@
 package main
 
 import (
-	"aoc-go/utils"
-	"log"
+	"fmt"
+	"lj/utils"
+	"os"
 	"slices"
 	"strings"
 )
@@ -65,17 +66,17 @@ func (m *Conjunction) getOutputs() []string {
 func (m *Conjunction) output(t Transmission) []Transmission {
 	m.states[t.from] = t.pulse
 
-	// log.Println(m.states)
+	// fmt.Println(m.states)
 
 	pulse := low
 	for _, state := range m.states {
-		// log.Println("checking", state)
+		// fmt.Println("checking", state)
 		if state == low {
 			pulse = high
-			// log.Println("setting pulse", pulse)
+			// fmt.Println("setting pulse", pulse)
 		}
 	}
-	// log.Println("pulse is", pulse)
+	// fmt.Println("pulse is", pulse)
 
 	outs := []Transmission{}
 	for _, out := range m.outputs {
@@ -105,89 +106,13 @@ type Module interface {
 	output(Transmission) []Transmission
 }
 
-func part1(input utils.Input) (answer interface{}) {
-	modules := map[string]Module{}
-	for line := range input.Lines() {
-		con := strings.Split(line, " -> ")
-		outputs := strings.Split(con[1], ", ")
-
-		var module string
-		if con[0] == "broadcaster" {
-			module = con[0]
-			modules[module] = &Broadcaster{outputs: outputs}
-
-		} else {
-			con_runes := []rune(con[0])
-			module = string(con_runes[1:])
-			switch con_runes[0] {
-			case '%':
-				modules[module] = &FlipFlop{state: low, outputs: outputs}
-			case '&':
-				modules[module] = &Conjunction{states: map[string]Pulse{}, outputs: outputs}
-			}
-		}
-	}
-
-	for k, v := range modules {
-		for _, out := range v.getOutputs() {
-			switch modules[out].(type) {
-			case *Conjunction:
-				modules[out].(*Conjunction).states[k] = low
-			}
-		}
-	}
-
-	for k, v := range modules {
-		log.Printf("%v: %#v", k, v)
-	}
-
-	low_count := 0
-	high_count := 0
-
-	for i := 0; i < 1000; i++ {
-
-		init := Transmission{
-			from:  "button", // maybe this causes troubles with conjunctions
-			to:    "broadcaster",
-			pulse: low,
-		}
-
-		stack := []Transmission{init}
-
-		log.Println("stack:", stack)
-		for len(stack) > 0 {
-			t := stack[0]
-
-			switch t.pulse {
-			case high:
-				high_count++
-			case low:
-				low_count++
-			}
-
-			log.Printf("%v -%v-> %v", t.from, t.pulse, t.to)
-			stack = stack[1:]
-
-			if receiver, ok := modules[t.to]; ok {
-				outputs := receiver.output(t)
-				log.Println("adding outputs", outputs)
-				stack = append(stack, outputs...)
-
-			}
-		}
-	}
-
-	log.Println("low", low_count, "high", high_count)
-
-	return low_count * high_count
-}
-
 // could only solve this with some assumptions without basis
 // the target "rx" has only one input, which is a Conjunction
 // a conjuction sends a low pulse if all of its inputs have been sending a high pulse
 // so I assume that its inputs send high pulses in intervals and we need to
 // find the earliest button press where all these intervals coincide
-func part2(input utils.Input) (answer interface{}) {
+func main() {
+	input := utils.NewStdinInput()
 	modules := map[string]Module{}
 	feed := ""
 	cycles := map[string]int{}
@@ -227,7 +152,7 @@ func part2(input utils.Input) (answer interface{}) {
 	}
 
 	for k, v := range modules {
-		log.Printf("%v: %#v", k, v)
+		fmt.Printf("%v: %#v", k, v)
 	}
 
 	rx_count := 0
@@ -235,7 +160,7 @@ func part2(input utils.Input) (answer interface{}) {
 	i := 0
 	for {
 		i++
-		// log.Println("i", i)
+		// fmt.Println("i", i)
 
 		init := Transmission{
 			from:  "button", // maybe this causes troubles with conjunctions
@@ -245,7 +170,7 @@ func part2(input utils.Input) (answer interface{}) {
 
 		stack := []Transmission{init}
 
-		// log.Println("stack:", stack)
+		// fmt.Println("stack:", stack)
 		for len(stack) > 0 {
 			t := stack[0]
 
@@ -253,12 +178,12 @@ func part2(input utils.Input) (answer interface{}) {
 				cycles[t.from] = i - cycles[t.from]
 			}
 
-			// log.Printf("%v -%v-> %v", t.from, t.pulse, t.to)
+			// fmt.Printf("%v -%v-> %v", t.from, t.pulse, t.to)
 			stack = stack[1:]
 
 			if receiver, ok := modules[t.to]; ok {
 				outputs := receiver.output(t)
-				// log.Println("adding outputs", outputs)
+				// fmt.Println("adding outputs", outputs)
 				stack = append(stack, outputs...)
 
 			}
@@ -268,15 +193,11 @@ func part2(input utils.Input) (answer interface{}) {
 		}
 	}
 
-	log.Println("cycles", cycles, "rx", rx_count)
+	fmt.Println("cycles", cycles, "rx", rx_count)
 
 	cycle_lengths := []int{}
 	for _, cycle := range cycles {
 		cycle_lengths = append(cycle_lengths, cycle)
 	}
-	return utils.LCM(cycle_lengths...)
-}
-
-func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	fmt.Fprintln(os.Stderr, utils.LCM(cycle_lengths...))
 }

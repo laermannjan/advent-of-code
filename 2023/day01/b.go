@@ -1,41 +1,18 @@
 package main
 
 import (
-	"aoc-go/utils"
+	"fmt"
+	"lj/utils"
+	"os"
 	"strconv"
 	"strings"
 	"unicode"
 )
 
-func part1(input utils.Input) interface{} {
-	sum := 0
-	for line := range input.Lines() {
-		runes := []rune(line)
+//lint:ignore ST1000 Suppressing duplicate main warning
+func main() {
+	input := utils.NewStdinInput()
 
-		var v int
-		for i := 0; i < len(runes); i++ {
-			if unicode.IsDigit(runes[i]) {
-				vv, _ := strconv.Atoi(string(runes[i]))
-				v += vv * 10
-				break
-			}
-		}
-
-		for i := len(runes) - 1; i >= 0; i-- {
-			if unicode.IsDigit(runes[i]) {
-				vv, _ := strconv.Atoi(string(runes[i]))
-				v += vv
-				break
-			}
-		}
-
-		// log.Println(v)
-		sum += v
-	}
-	return sum
-}
-
-func part2(input utils.Input) interface{} {
 	digits := []string{"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
 	sum := 0
 	for line := range input.Lines() {
@@ -78,9 +55,6 @@ func part2(input utils.Input) interface{} {
 		// log.Println(firstDigit, secondDigit)
 		sum += firstDigit*10 + secondDigit
 	}
-	return sum
-}
 
-func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	fmt.Fprintln(os.Stderr, sum)
 }

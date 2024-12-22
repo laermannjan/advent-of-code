@@ -1,9 +1,10 @@
 package main
 
 import (
-	"aoc-go/utils"
 	"errors"
-	"log"
+	"fmt"
+	"lj/utils"
+	"os"
 )
 
 type Direction int
@@ -56,7 +57,7 @@ func (g *Grid) move(pos Position, d Direction) (Position, error) {
 func (g *Grid) next(item Item) []Item {
 	next_items := []Item{}
 
-	log.Println("checking", item)
+	fmt.Println("checking", item)
 
 	switch symbol := (*g)[item.p.row][item.p.col]; symbol {
 	case '/':
@@ -135,44 +136,12 @@ func (g *Grid) next(item Item) []Item {
 
 	}
 
-	log.Println("next items", next_items)
+	fmt.Println("next items", next_items)
 	return next_items
 }
 
-func part1(input utils.Input) (answer interface{}) {
-	queue := []Item{{p: Position{row: 0, col: 0}, moving: east}}
-	processed := map[Item]bool{}
-	log.Println(queue)
-	energized := map[Position]bool{
-		{row: 0, col: 0}: true,
-	}
-	n_energized := 1
-	var grid Grid = input.RunesSlice()
-	log.Println(queue)
-
-	for len(queue) > 0 {
-		log.Println("queue", queue)
-		item := queue[0]
-		queue = queue[1:]
-
-		if _, ok := energized[item.p]; !ok {
-			energized[item.p] = true
-			n_energized++
-		}
-
-		for _, next_item := range grid.next(item) {
-			if _, ok := processed[next_item]; !ok {
-				log.Println("adding", next_item)
-				processed[next_item] = true
-				queue = append(queue, next_item)
-			}
-		}
-
-	}
-	return n_energized
-}
-
-func part2(input utils.Input) (answer interface{}) {
+func main() {
+	input := utils.NewStdinInput()
 	var grid Grid = input.RunesSlice()
 	starts := []Item{}
 	starts = append(starts, Item{Position{0, 0}, south})
@@ -201,7 +170,7 @@ func part2(input utils.Input) (answer interface{}) {
 		n_energized := 1
 
 		for len(queue) > 0 {
-			log.Println("queue", queue)
+			fmt.Println("queue", queue)
 			item := queue[0]
 			queue = queue[1:]
 
@@ -212,7 +181,7 @@ func part2(input utils.Input) (answer interface{}) {
 
 			for _, next_item := range grid.next(item) {
 				if _, ok := processed[next_item]; !ok {
-					log.Println("adding", next_item)
+					fmt.Println("adding", next_item)
 					processed[next_item] = true
 					queue = append(queue, next_item)
 				}
@@ -223,9 +192,5 @@ func part2(input utils.Input) (answer interface{}) {
 		max_energized = max(max_energized, n_energized)
 
 	}
-	return max_energized
-}
-
-func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	fmt.Fprintln(os.Stderr, max_energized)
 }

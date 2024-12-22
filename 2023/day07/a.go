@@ -1,8 +1,9 @@
 package main
 
 import (
-	"aoc-go/utils"
-	"log"
+	"fmt"
+	"lj/utils"
+	"os"
 	"slices"
 	"strings"
 )
@@ -108,13 +109,14 @@ var cardValuesJoker = map[rune]int{
 	'A': 14,
 }
 
-func part1(input utils.Input) interface{} {
+func main() {
+	input := utils.NewStdinInput()
 	hands := []hand{}
 	for line := range input.Lines() {
 		fields := strings.Fields(line)
 		h := hand{cards: fields[0], bid: utils.Atoi(fields[1])}
 		hands = append(hands, h)
-		log.Println("hand", h, h.get_type(false))
+		fmt.Println("hand", h, h.get_type(false))
 
 	}
 	slices.SortFunc(hands, func(a, b hand) int {
@@ -133,13 +135,13 @@ func part1(input utils.Input) interface{} {
 		return 0
 	})
 
-	log.Println("\n", hands)
+	fmt.Println("\n", hands)
 
 	winnings := 0
 	for i, hand := range hands {
 		winnings += (i + 1) * hand.bid
 	}
-	return winnings
+	fmt.Fprintln(os.Stderr, winnings)
 }
 
 func part2(input utils.Input) interface{} {
@@ -148,7 +150,7 @@ func part2(input utils.Input) interface{} {
 		fields := strings.Fields(line)
 		h := hand{cards: fields[0], bid: utils.Atoi(fields[1])}
 		hands = append(hands, h)
-		log.Println("hand", h, h.get_type(true))
+		fmt.Println("hand", h, h.get_type(true))
 
 	}
 	slices.SortFunc(hands, func(a, b hand) int {
@@ -167,15 +169,11 @@ func part2(input utils.Input) interface{} {
 		return 0
 	})
 
-	log.Println("\n", hands)
+	fmt.Println("\n", hands)
 
 	winnings := 0
 	for i, hand := range hands {
 		winnings += (i + 1) * hand.bid
 	}
 	return winnings
-}
-
-func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
 }

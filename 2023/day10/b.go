@@ -1,10 +1,10 @@
 package main
 
 import (
-	"aoc-go/utils"
 	"errors"
 	"fmt"
-	"log"
+	"lj/utils"
+	"os"
 	"slices"
 	"strings"
 )
@@ -69,62 +69,14 @@ func (p position) symbol(grid []string) (symbol byte) {
 	return
 }
 
-func part1(input utils.Input) interface{} {
-	maze := input.LineSlice()
-	var s position
-	for r := range maze {
-		for c, ch := range maze[r] {
-			if ch == 'S' {
-				s = position{row: r, col: c}
-			}
-		}
-	}
-
-	loop := map[position]bool{s: true}
-	current := s
-	log.Println("starting:", current)
-	prev_move := ""
-	for {
-		if current == s {
-			for move, valid_symbols := range enters {
-				next, err := current.move(maze, move)
-				if err != nil {
-					continue
-				}
-				if slices.Contains(valid_symbols, next.symbol(maze)) {
-					current = next
-					prev_move = move
-					loop[current] = true
-					log.Println("move:", prev_move)
-					break
-				}
-			}
-		}
-
-		opts := options[current.symbol(maze)]
-		if inverse[opts[0]] == prev_move {
-			prev_move = opts[1]
-		} else {
-			prev_move = opts[0]
-		}
-		log.Println("move:", prev_move)
-		current, _ = current.move(maze, prev_move)
-		loop[current] = true
-		if current == s {
-			break
-		}
-	}
-
-	return len(loop) / 2
-}
-
 // a point within the loop needs to cross the loop an uneven number of times
 // and a point outside will not cross it at all or cross it an even number of times
 // we can just go from left to right per line and count how many times we cross the pipe
 // all free cells '.' where we crossed the pipe an uneven amount of time before will be within the loop
 // special case is where we have constructs like 'F---7' (down-turn, down-turn), which we don't cross, or 'F---J' (opposite turns) which we need to cross once.
 
-func part2(input utils.Input) interface{} {
+func main() {
+	input := utils.NewStdinInput()
 	maze := input.LineSlice()
 	var s position
 	for r := range maze {
@@ -137,7 +89,7 @@ func part2(input utils.Input) interface{} {
 
 	loop := map[position]bool{s: true}
 	current := s
-	log.Println("starting:", current)
+	fmt.Println("starting:", current)
 	prev_move := ""
 
 	for {
@@ -151,7 +103,7 @@ func part2(input utils.Input) interface{} {
 					current = next
 					prev_move = move
 					loop[current] = true
-					log.Println("move:", prev_move)
+					fmt.Println("move:", prev_move)
 					break
 				}
 			}
@@ -163,7 +115,7 @@ func part2(input utils.Input) interface{} {
 		} else {
 			prev_move = opts[0]
 		}
-		log.Println("move:", prev_move)
+		fmt.Println("move:", prev_move)
 		current, _ = current.move(maze, prev_move)
 		loop[current] = true
 		if current == s {
@@ -185,7 +137,7 @@ func part2(input utils.Input) interface{} {
 	si := 0
 	for _, dir := range []string{"north", "east", "south", "west"} {
 		if pos, ok := s.move(maze, dir); ok == nil && slices.Contains(enters[dir], pos.symbol(maze)) {
-			log.Println("dir", dir, "pos", pos)
+			fmt.Println("dir", dir, "pos", pos)
 			s_dirs[si] = dir
 			si++
 		}
@@ -221,15 +173,11 @@ func part2(input utils.Input) interface{} {
 				last = 0
 			} else if ch == '.' && crossed {
 				n_within++
-				log.Println(r, c, "is within")
+				fmt.Println(r, c, "is within")
 
 			}
 		}
 	}
 
-	return n_within
-}
-
-func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	fmt.Fprintln(os.Stderr, n_within)
 }

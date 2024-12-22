@@ -1,8 +1,9 @@
 package main
 
 import (
-	"aoc-go/utils"
-	"log"
+	"fmt"
+	"lj/utils"
+	"os"
 	"slices"
 	"unicode"
 )
@@ -34,40 +35,9 @@ func getDirections(lines []string, x, y int) []Pair {
 	return possible_dirs
 }
 
-func part1(input utils.Input) interface{} {
-	sum := 0
+func main() {
+	input := utils.NewStdinInput()
 
-	lines := input.LineSlice()
-	for y, line := range lines {
-		num := ""
-		isPartNumber := false
-		for x, char := range line {
-			if unicode.IsDigit(char) {
-				num += string(char)
-				if !isPartNumber {
-					for _, dir := range getDirections(lines, x, y) {
-						if isSymbol([]rune(lines[y+dir.y])[x+dir.x]) {
-							isPartNumber = true
-							break
-						}
-					}
-				}
-			}
-
-			if !unicode.IsDigit(char) || x == len(line)-1 {
-				if isPartNumber {
-					sum += utils.Atoi(num)
-					log.Println(sum, num)
-					isPartNumber = false
-				}
-				num = ""
-			}
-		}
-	}
-	return sum
-}
-
-func part2(input utils.Input) interface{} {
 	sum := 0
 
 	lines := input.LineSlice()
@@ -77,7 +47,7 @@ func part2(input utils.Input) interface{} {
 		isPartNumber := false
 		adjacentStars := []Pair{}
 		for x, char := range line {
-			log.Printf("check x=%d y=%d, num=%s\n", x, y, num)
+			fmt.Printf("check x=%d y=%d, num=%s\n", x, y, num)
 			if unicode.IsDigit(char) {
 				num += string(char)
 				for _, dir := range getDirections(lines, x, y) {
@@ -96,12 +66,12 @@ func part2(input utils.Input) interface{} {
 
 				}
 			}
-			log.Println("adjacent stars:", adjacentStars)
+			fmt.Println("adjacent stars:", adjacentStars)
 
 			if !unicode.IsDigit(char) || x == len(line)-1 {
 				for _, star := range adjacentStars {
 					stars[star] = append(stars[star], utils.Atoi(num))
-					log.Println(stars)
+					fmt.Println(stars)
 				}
 				num = ""
 				adjacentStars = []Pair{}
@@ -120,9 +90,5 @@ func part2(input utils.Input) interface{} {
 
 		}
 	}
-	return sum
-}
-
-func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	fmt.Fprintln(os.Stderr, sum)
 }

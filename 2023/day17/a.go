@@ -1,9 +1,10 @@
 package main
 
 import (
-	"aoc-go/utils"
 	"container/heap"
-	"log"
+	"fmt"
+	"lj/utils"
+	"os"
 )
 
 type Position struct {
@@ -93,7 +94,8 @@ func (grid *Grid) getHeatLoss(p Position) int {
 	return utils.Atoi(string(g[p.row][p.col]))
 }
 
-func part1(input utils.Input) (answer interface{}) {
+func main() {
+	input := utils.NewStdinInput()
 	var grid Grid = input.RunesSlice()
 	start := Position{0, 0}
 	end := Position{len(grid) - 1, len(grid[0]) - 1}
@@ -106,12 +108,12 @@ func part1(input utils.Input) (answer interface{}) {
 
 	i := 0
 	for len(q) > 0 {
-		log.Printf("%v, %v", q[0], len(q))
+		fmt.Printf("%v, %v", q[0], len(q))
 		item := heap.Pop(&q).(QItem)
 
 		if item.pos.Equal(end) {
 			print(i)
-			return item.heatLoss
+			fmt.Fprintln(os.Stderr, item.heatLoss)
 		}
 
 		seenItem := SeenItem{
@@ -151,74 +153,5 @@ func part1(input utils.Input) (answer interface{}) {
 		}
 
 	}
-	return
-}
-
-func part2(input utils.Input) (answer interface{}) {
-	var grid Grid = input.RunesSlice()
-	start := Position{0, 0}
-	end := Position{len(grid) - 1, len(grid[0]) - 1}
-
-	q := PriorityQueue{}
-	heap.Init(&q)
-	heap.Push(&q, QItem{heatLoss: 0, pos: start, moved: null, nStraight: 0})
-
-	seen := map[SeenItem]bool{}
-
-	i := 0
-	for len(q) > 0 {
-		log.Printf("%v, %v", q[0], len(q))
-		item := heap.Pop(&q).(QItem)
-
-		if item.pos.Equal(end) && item.nStraight >= 4 {
-			print(i)
-			return item.heatLoss
-		}
-
-		seenItem := SeenItem{
-			pos:           item.pos,
-			moved:         item.moved,
-			stepsStraight: item.nStraight,
-		}
-
-		if _, ok := seen[seenItem]; ok {
-			continue
-		}
-
-		seen[seenItem] = true
-
-		for _, offset := range []Offset{north, south, west, east} {
-			next_pos := item.pos.Move(offset)
-			nStraight := item.nStraight
-			if !grid.contains(next_pos) {
-				continue
-			} else if offset.Opposite(item.moved) {
-				continue
-			} else if offset.Equal(item.moved) {
-				if nStraight >= 10 {
-					continue
-				}
-				nStraight += 1
-			} else {
-				if nStraight < 4 && !item.moved.Equal(null) {
-					continue
-				}
-				nStraight = 1
-			}
-
-			heap.Push(&q, QItem{
-				pos:       next_pos,
-				moved:     offset,
-				heatLoss:  item.heatLoss + grid.getHeatLoss(next_pos),
-				nStraight: nStraight,
-			})
-
-		}
-
-	}
-	return
-}
-
-func main() {
-	utils.Day{PartOne: part1, PartTwo: part2}.Run()
+	fmt.Fprintln(os.Stderr, "<error>")
 }
