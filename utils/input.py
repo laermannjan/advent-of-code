@@ -14,8 +14,8 @@ def lines() -> list[str]:
 
 def coords() -> Generator[tuple[tuple[int, int], str], None, None]:
     for r, row in enumerate(lines()):
-        for c, col in enumerate(row):
-            yield (r, c), col
+        for c, ele in enumerate(row):
+            yield (r, c), ele
 
 
 def sections(gap: int = 1) -> Generator[list[str], None, None]:
