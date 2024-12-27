@@ -78,3 +78,90 @@ path = "day09/a.rs"
 [[bin]]
 name = "day09-b"
 path = "day09/b.rs"
+
+[[bin]]
+name = "day10-a"
+path = "day10/a.rs"
+[[bin]]
+name = "day10-b"
+path = "day10/b.rs"
+
+
+[[bin]]
+name = "day11-a"
+path = "day11/a.rs"
+[[bin]]
+name = "day11-b"
+path = "day11/b.rs"
+
+[[bin]]
+name = "day12-a"
+path = "day12/a.rs"
+[[bin]]
+name = "day12-b"
+path = "day12/b.rs"
+
+[[bin]]
+name = "day13-a"
+path = "day13/a.rs"
+[[bin]]
+name = "day13-b"
+path = "day13/b.rs"
+
+[[bin]]
+name = "day14-a"
+path = "day14/a.rs"
+[[bin]]
+name = "day14-b"
+path = "day14/b.rs"
+
+[[bin]]
+name = "day15-a"
+path = "day15/a.rs"
+[[bin]]
+name = "day15-b"
+path = "day15/b.rs"
+
+[[bin]]
+name = "day16-a"
+path = "day16/a.rs"
+[[bin]]
+name = "day16-b"
+path = "day16/b.rs"
+
+
+[[bin]]
+name = "day17-a"
+path = "day17/a.rs"
+[[bin]]
+name = "day17-b"
+path = "day17/b.rs"
+
+
+[[bin]]
+name = "day18-a"
+path = "day18/a.rs"
+[[bin]]
+name = "day18-b"
+path = "day18/b.rs"
+
+[[bin]]
+name = "day19-a"
+path = "day19/a.rs"
+[[bin]]
+name = "day19-b"
+path = "day19/b.rs"
+
+[[bin]]
+name = "day20-a"
+path = "day20/a.rs"
+[[bin]]
+name = "day20-b"
+path = "day20/b.rs"
+
+[[bin]]
+name = "day21-a"
+path = "day21/a.rs"
+[[bin]]
+name = "day21-b"
+path = "day21/b.rs"
