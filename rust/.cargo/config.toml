@@ -1,5 +1,0 @@
-[alias]
-scaffold = "run -p utils --bin scaffold -- 2022"
-ex = "test -p aoc-2022 --bin"
-solve = "run -p aoc-2022 --bin"
-all = "run -p aoc-2022 --release"
