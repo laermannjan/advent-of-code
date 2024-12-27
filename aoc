@@ -88,6 +88,7 @@ run_solution() {
         "py") cmd="uv run --project $YEAR python $solution_file" ;;
         "go") cmd="go run -C $YEAR day$day/$part.$LANG" ;;
         "rs") cmd="cargo run --manifest-path $YEAR/Cargo.toml --bin day$day-$part";;
+        "lua") cmd="lua $solution_file" ;;
         *) echo "Unsupported language: $LANG" >&2; exit 1 ;;
     esac
 
