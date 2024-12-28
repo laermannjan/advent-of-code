@@ -85,11 +85,14 @@ run_solution() {
     fi
 
     case "$LANG" in
-        "py") cmd="uv run --project $YEAR python $solution_file" ;;
-        "go") cmd="go run -C $YEAR day$day/$part.$LANG" ;;
-        "rs") cmd="cargo run --manifest-path $YEAR/Cargo.toml --bin day$day-$part";;
-        "lua") cmd="lua $solution_file" ;;
-        *) echo "Unsupported language: $LANG" >&2; exit 1 ;;
+    "py") cmd="uv run --project $YEAR python $solution_file" ;;
+    "go") cmd="go run -C $YEAR day$day/$part.$LANG" ;;
+    "rs") cmd="cargo run --manifest-path $YEAR/Cargo.toml --bin day$day-$part" ;;
+    "lua") cmd="lua $solution_file" ;;
+    *)
+        echo "Unsupported language: $LANG" >&2
+        exit 1
+        ;;
     esac
 
     local input_source
@@ -104,7 +107,7 @@ run_solution() {
         $cmd
     else
         echo "-- $cmd < $input_file" >&2
-        $cmd < "$input_file"
+        $cmd <"$input_file"
     fi
 
     if [[ "$input_type" =~ ^example([ab]?[0-9]*)$ ]]; then
@@ -120,20 +123,20 @@ run_solution() {
 }
 
 add_bin_entry() {
-    local day="$1"   # e.g., "01"
-    local part="$2"  # e.g., "a"
-    local year="$3"  # e.g., "2021"
+    local day="$1"  # e.g., "01"
+    local part="$2" # e.g., "a"
+    local year="$3" # e.g., "2021"
 
     local cargo_toml_path="$year/Cargo.toml"
 
     # The binary name and the path in which your .rs file will live
-    local bin_name="day${day}-${part}"   # e.g., "day01-a"
+    local bin_name="day${day}-${part}"    # e.g., "day01-a"
     local bin_path="day${day}/${part}.rs" # e.g., "day01/a.rs"
 
     # Check if there's already a [[bin]] with this name
     if ! grep -q "name\s*=\s*\"${bin_name}\"" "$cargo_toml_path" 2>/dev/null; then
         echo "Appending a new [[bin]] entry for $bin_name to $cargo_toml_path"
-        cat <<EOF >> "$cargo_toml_path"
+        cat <<EOF >>"$cargo_toml_path"
 
 [[bin]]
 name = "$bin_name"
@@ -152,58 +155,58 @@ cmd="$1"
 shift
 
 case "$cmd" in
-    "load")
-        # Determine which day to load
-        if [[ $# -eq 0 ]]; then
-            curr_day=$(get_latest_input_day)
-            day=$(parse_day $((${curr_day:-0} + 1)))
-        else
-            day=$(parse_day "$1")
-        fi
+"load")
+    # Determine which day to load
+    if [[ $# -eq 0 ]]; then
+        curr_day=$(get_latest_input_day)
+        day=$(parse_day $((10#${curr_day:-0} + 1))) # `10# forces the number to be base 10`
+    else
+        day=$(parse_day "$1")
+    fi
 
-        # Create files for the day
-        dir="$YEAR/day$day"
-        mkdir -p "$dir"
+    # Create files for the day
+    dir="$YEAR/day$day"
+    mkdir -p "$dir"
 
-        # Download puzzle input (strip leading zeros for URL)
-        curl --fail --silent --cookie "session=$AOC_COOKIE" \
-             "https://adventofcode.com/$YEAR/day/$((10#$day))/input" > "$dir/input.txt" || {
-            echo "Failed to download input for day $day" >&2
-            exit 1
-        }
+    # Download puzzle input (strip leading zeros for URL)
+    curl --fail --silent --cookie "session=$AOC_COOKIE" \
+        "https://adventofcode.com/$YEAR/day/$((10#$day))/input" >"$dir/input.txt" || {
+        echo "Failed to download input for day $day" >&2
+        exit 1
+    }
 
-        # Create all required files
-        touch "$dir/example.txt" 
+    # Create all required files
+    touch "$dir/example.txt"
 
-        cp "template.$LANG" "$dir/a.$LANG"
-        cp "template.$LANG" "$dir/b.$LANG"
+    cp "template.$LANG" "$dir/a.$LANG"
+    cp "template.$LANG" "$dir/b.$LANG"
 
-        if [[ "$LANG" == "rs" ]]; then
-            # add cargo bin entries
-            add_bin_entry "$day" "a" "$YEAR"
-            add_bin_entry "$day" "b" "$YEAR"
-        fi
+    if [[ "$LANG" == "rs" ]]; then
+        # add cargo bin entries
+        add_bin_entry "$day" "a" "$YEAR"
+        add_bin_entry "$day" "b" "$YEAR"
+    fi
 
-        # Show what we did
-        echo "Created $dir/input.txt"
-        echo "Created $dir/example.txt"
-        echo "Created $dir/a.$LANG"
-        echo "Created $dir/b.$LANG"
-        ;;
+    # Show what we did
+    echo "Created $dir/input.txt"
+    echo "Created $dir/example.txt"
+    echo "Created $dir/a.$LANG"
+    echo "Created $dir/b.$LANG"
+    ;;
 
-    "run")
-        if [[ $# -eq 0 ]] || [[ "$1" =~ ^(input|example[ab]?[0-9]*)$ ]]; then
-            read -r day part <<< "$(get_latest_solution)"
-            input_type="${1:-example}"
-        else
-            read -r day part <<< "$(parse_day_part "$1")"
-            input_type="${2:-example}"
-        fi
-        run_solution "$day" "$part" "$input_type"
-        ;;
+"run")
+    if [[ $# -eq 0 ]] || [[ "$1" =~ ^(input|example[ab]?[0-9]*)$ ]]; then
+        read -r day part <<<"$(get_latest_solution)"
+        input_type="${1:-example}"
+    else
+        read -r day part <<<"$(parse_day_part "$1")"
+        input_type="${2:-example}"
+    fi
+    run_solution "$day" "$part" "$input_type"
+    ;;
 
-    *)
-        echo "Unknown command: $cmd" >&2
-        print_usage
-        ;;
+*)
+    echo "Unknown command: $cmd" >&2
+    print_usage
+    ;;
 esac
