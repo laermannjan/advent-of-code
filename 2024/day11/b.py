@@ -5,22 +5,24 @@ from utils import input
 
 
 @cache
-def blink(stone: int, blinks: int):
+def count(stone: int, blinks: int) -> int:
+    # NOTE: we need to compute the count of stones
+    # instead of the actual stones, otherwise the list of stones
+    # grows too large and bottlenecks
+
     # print(f"{stone=}, {blinks=}")
-    if blinks < 1:
-        return [stone]
+    if blinks == 0:
+        return 1
+    if stone == 0:
+        return count(1, blinks - 1)
+
     string = str(stone)
     length = len(string)
-
-    if stone == 0:
-        return blink(1, blinks - 1)
-    elif length % 2 == 0:
-        return [
-            *blink(int(string[: length // 2]), blinks - 1),
-            *blink(int(string[length // 2 :]), blinks - 1),
-        ]
-    else:
-        return blink(stone * 2024, blinks - 1)
+    if length % 2 == 0:
+        c1 = count(int(string[: length // 2]), blinks - 1)
+        c2 = count(int(string[length // 2 :]), blinks - 1)
+        return c1 + c2
+    return count(stone * 2024, blinks - 1)
 
 
 def main():
@@ -29,13 +31,12 @@ def main():
     stones = [int(x) for x in input.lines()[0].split()]
 
     print(f"{stones=}")
-    final_stones = []
+    n_stones = 0
     for stone in stones:
         print(f"OG STONE {stone=}")
-        final_stones.extend(blink(stone, BLINKS))
-        # print(f"{final_stones=}")
+        n_stones += count(stone, BLINKS)
 
-    print(f"{len(final_stones)} - after {BLINKS} blinks", file=sys.stderr)
+    print(f"{n_stones} - after {BLINKS} blinks", file=sys.stderr)
 
 
 if __name__ == "__main__":
