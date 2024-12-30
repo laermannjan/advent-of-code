@@ -3,26 +3,30 @@ import sys
 from utils import input
 
 
-def blink(stones: list[str]) -> list[str]:
+def blink(stones: list[int]) -> list[int]:
     print(f"blinking on {stones}")
-    it = enumerate(stones)
-    for s, stone in it:
-        if stone == "0":
-            stones[s] = "1"
-        elif len(stone) % 2 == 0:
-            stones[s] = stone[: len(stone) // 2]
-            stones.insert(s + 1, str(int(stone[len(stone) // 2 :])))
-            next(it)
-        else:
-            stones[s] = str(int(stone) * 2024)
-        print(f"{s=}, {stone=}, {stones}")
+    next_stones = []
+    for stone in stones:
+        if stone == 0:
+            next_stones.append(1)
+            continue
 
-    return stones
+        string = str(stone)
+        length = len(string)
+
+        if length % 2 == 0:
+            next_stones.append(int(string[: length // 2]))
+            next_stones.append(int(string[length // 2 :]))
+        else:
+            next_stones.append(stone * 2024)
+        # print(f"{stone=}, {stones}")  # NOTE: uncommenting will let this run EXTREMELY slower
+
+    return next_stones
 
 
 def main():
     BLINKS = 25
-    stones = input.lines()[0].split(" ")
+    stones = [int(x) for x in input.lines()[0].split()]
 
     for b in range(BLINKS):
         print(f"BLINK = '{b}'", file=sys.stderr)
