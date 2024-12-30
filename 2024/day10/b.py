@@ -3,27 +3,29 @@ import sys
 from utils import input
 
 
-def score(coords: dict[tuple[int, int], str], start: tuple[int, int]) -> int:
+def rating(coords: dict[tuple[int, int], str], start: tuple[int, int]) -> int:
     seen = set()
     stack = [start]
 
-    endings = set()
+    n_trails = 0
 
     while stack:
         row, col = stack.pop()
         if coords[(row, col)] == "9":
-            endings.add((row, col))
+            print(f"trail end at ({row},{col})")
+            n_trails += 1
             continue
         for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
             pos = row + dr, col + dc
             if (
                 pos not in seen
                 and pos in coords
+                and coords[pos] != "."
                 and int(coords[pos]) - int(coords[(row, col)]) == 1
             ):
-                stack.append(pos)
+                stack.insert(0, pos)
 
-    return len(endings)
+    return n_trails
 
 
 def main():
@@ -33,8 +35,8 @@ def main():
     for (row, col), height in coords.items():
         if height != "0":
             continue
-        s = score(coords, (row, col))
-        print(f"tailhead at ({row},{col}) - score {s}")
+        s = rating(coords, (row, col))
+        print(f"tailhead at ({row},{col}) - rating {s}")
         total += s
 
     print(total, file=sys.stderr)
