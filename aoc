@@ -116,7 +116,9 @@ run_solution() {
         [[ -z "$example_num" ]] && solution_check_file="$dir/solution.txt"
 
         if [[ -f "$solution_check_file" ]]; then
-            echo "$(cat "$solution_check_file" | tail -n 1) <- (expected)" >&2
+            while IFS= read -r line; do
+                [[ -n "$line" ]] && echo "$line <- ($(basename $solution_check_file))" >&2
+            done <"$solution_check_file"
         fi
     fi
 
