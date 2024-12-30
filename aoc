@@ -181,7 +181,6 @@ case "$cmd" in
     touch "$dir/example.txt"
 
     cp "template.$LANG" "$dir/a.$LANG"
-    cp "template.$LANG" "$dir/b.$LANG"
 
     if [[ "$LANG" == "rs" ]]; then
         # add cargo bin entries
@@ -193,7 +192,6 @@ case "$cmd" in
     echo "Created $dir/input.txt"
     echo "Created $dir/example.txt"
     echo "Created $dir/a.$LANG"
-    echo "Created $dir/b.$LANG"
     ;;
 
 "run")

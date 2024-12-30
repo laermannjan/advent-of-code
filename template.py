@@ -1,4 +1,12 @@
 import sys
 
-# print final result to stderr
-print("not implemented", file=sys.stderr)
+from utils import input
+
+
+def main():
+    print(input.stdin())
+    print("not implemented", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()
