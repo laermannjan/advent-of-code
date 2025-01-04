@@ -9,21 +9,30 @@ arrows = " ^A\n<v>"
 
 
 @cache
-def compute_options(keypad: str):
-    # computes all possible shortest sequences of button presses between any two buttons on the keypad
-    keys = {
+def compute_keys(keypad: str):
+    return {
         (r, c): key
         for r, row in enumerate(keypad.splitlines())
         for c, key in enumerate(row)
         if key != " "
     }
-    coords = {
+
+
+@cache
+def compute_coords(keypad: str):
+    return {
         key: (r, c)
         for r, row in enumerate(keypad.splitlines())
         for c, key in enumerate(row)
         if key != " "
     }
 
+
+@cache
+def compute_options(keypad: str):
+    # computes all possible shortest sequences of button presses between any two buttons on the keypad
+    keys = compute_keys(keypad)
+    coords = compute_coords(keypad)
     options = {}
     for start, end in product(coords, repeat=2):
         sr, sc = coords[start]
@@ -32,7 +41,7 @@ def compute_options(keypad: str):
 
         # since manhattan distance, shortest paths are all combinations
         # of moves that don't move back and reach end
-        seqs = set()
+        seqs = []
         moves = []
         if sr > er:
             moves.append((-1, 0, "^"))
@@ -54,7 +63,7 @@ def compute_options(keypad: str):
                 seq.append(moves)
             else:
                 if coords[end] == (r, c):
-                    seqs.add("".join(seq) + "A")
+                    seqs.append("".join(seq) + "A")
         options[(start, end)] = seqs
 
     return options
@@ -72,23 +81,26 @@ def compute_seqs(buttons: str, keypad: str) -> list[str]:
     return all_seqs
 
 
-def main():
-    keypads = [numbers, arrows, arrows]
-    # keypads = [numbers, arrows]
+@cache
+def compute_length(buttons, n_robots=2, use_numbers=False):
+    options = compute_options(numbers if use_numbers else arrows)
+    if n_robots == 1:
+        return sum(
+            len(options[(start, end)][0]) for start, end in pairwise("A" + buttons)
+        )
+    return sum(
+        min(compute_length(seq, n_robots - 1) for seq in options[(start, end)])
+        for start, end in pairwise("A" + buttons)
+    )
 
+
+def main():
     total = 0
     for line in input.lines():
-        seqs = [line]
-        for keypad in keypads:
-            seqs = [
-                next_level_buttons
-                for buttons in seqs
-                for next_level_buttons in compute_seqs(buttons, keypad)
-            ]
-            minlen = min(map(len, seqs))
-            seqs = [s for s in seqs if len(s) == minlen]
-        print(minlen)
-
+        # NOTE: basically we go depth first, instead of breadth first as we did in part one
+        # this allows us to cache the translation via many robots and skip compution
+        # on subsequent button sequences
+        minlen = compute_length(line, n_robots=26, use_numbers=True)
         total += minlen * int(line[:-1])
 
     print(total, file=sys.stderr)
