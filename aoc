@@ -89,6 +89,7 @@ run_solution() {
     "go") cmd="go run -C $YEAR day$day/$part.$LANG" ;;
     "rs") cmd="cargo run --manifest-path $YEAR/Cargo.toml --bin day$day-$part" ;;
     "lua") cmd="lua $solution_file" ;;
+    "zig") cmd="zig run $solution_file" ;;
     *)
         echo "Unsupported language: $LANG" >&2
         exit 1
