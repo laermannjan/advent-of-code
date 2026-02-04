@@ -5,18 +5,17 @@ from utils import input
 
 
 def main():
-    grid = [
-        [ele if ele in "+*" else int(ele) for ele in line.split()]
-        for line in input.lines()
-    ]
+    cols = list(zip(*[line.split() for line in input.lines()]))
+    print(cols)
 
     total = 0
-    for col in range(len(grid[0])):
-        prob = [grid[row][col] for row in range(len(grid))]
-        print(prob)
-        nums, op = map(int, prob[:-1]), prob[-1]
-        result = sum(nums) if op == "+" else prod(nums)
-        total += result
+    for *nums, op_col in cols:
+        if op_col == "+":
+            op = sum
+        else:
+            op = prod
+
+        total += op(map(int, nums))
 
     print(total, file=sys.stderr)
 
